@@ -8,81 +8,107 @@ from datetime import datetime
 from collections import defaultdict, Counter
 
 # ==========================================
-# 1. CONFIGURATION & STATE SETUP
+# 1. CONFIGURATION & CSS STYLING
 # ==========================================
 
-st.set_page_config(page_title="DocSearch Pro", page_icon="🔎", layout="wide")
+st.set_page_config(page_title="DocSearch Pro", page_icon="🌈", layout="wide")
 
 DOCS_DIR = "docs"
 LOG_FILE = "search_logs.csv"
+USER_DB_FILE = "users.csv"
 
-# Create docs folder if missing
+# Ensure directories exist
 if not os.path.exists(DOCS_DIR):
     os.makedirs(DOCS_DIR)
 
-# Initialize Session State Variables
-if 'logged_in' not in st.session_state:
-    st.session_state['logged_in'] = False
-if 'username' not in st.session_state:
-    st.session_state['username'] = ""
-if 'theme' not in st.session_state:
-    st.session_state['theme'] = "Light"
-if 'is_admin' not in st.session_state:
-    st.session_state['is_admin'] = False
-
-# --- DUMMY USER DATABASE ---
-# Format: "username": "password"
-USERS_DB = {
-    "user": "1234",
-    "alice": "password",
-    "admin": "admin123" # Admin can also log in as a user
-}
+# --- CUSTOM COLORFUL UI (CSS) ---
+def apply_custom_style():
+    st.markdown("""
+        <style>
+        /* Main Background Gradient */
+        .stApp {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        /* Sidebar Styling */
+        section[data-testid="stSidebar"] {
+            background-color: #ffffff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Headers */
+        h1, h2, h3 {
+            color: #2c3e50;
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+        
+        /* Card-like containers for results */
+        div[data-testid="stExpander"] {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 10px;
+        }
+        
+        /* Custom Buttons */
+        div.stButton > button {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border-radius: 8px;
+            border: none;
+            padding: 10px 20px;
+            transition: all 0.3s;
+        }
+        div.stButton > button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Input Fields */
+        div[data-baseweb="input"] {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            background: white;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. HELPER FUNCTIONS
+# 2. USER MANAGEMENT SYSTEM
 # ==========================================
 
-def log_search(username, query):
-    """Logs the search query with the specific username."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if not os.path.exists(LOG_FILE):
-        with open(LOG_FILE, "w") as f:
-            f.write("Timestamp,User,Query\n")
+def init_user_db():
+    """Creates the user database if it doesn't exist."""
+    if not os.path.exists(USER_DB_FILE):
+        df = pd.DataFrame(columns=["username", "password", "created_at"])
+        # Add default admin
+        df.loc[0] = ["admin", "admin123", datetime.now().strftime("%Y-%m-%d")]
+        df.to_csv(USER_DB_FILE, index=False)
+
+def register_user(username, password):
+    """Adds a new user to the CSV."""
+    init_user_db()
+    df = pd.read_csv(USER_DB_FILE)
     
-    with open(LOG_FILE, "a") as f:
-        f.write(f"{timestamp},{username},{query}\n")
+    if username in df['username'].values:
+        return False, "Username already taken!"
+    
+    new_user = pd.DataFrame([[username, password, datetime.now().strftime("%Y-%m-%d")]], 
+                            columns=["username", "password", "created_at"])
+    df = pd.concat([df, new_user], ignore_index=True)
+    df.to_csv(USER_DB_FILE, index=False)
+    return True, "Account created successfully! Please log in."
 
-def apply_theme():
-    """Injects CSS based on the selected theme."""
-    if st.session_state['theme'] == "Dark":
-        st.markdown("""
-            <style>
-            .stApp {
-                background-color: #0E1117;
-                color: #FAFAFA;
-            }
-            .stTextInput > div > div > input {
-                background-color: #262730;
-                color: #FAFAFA;
-            }
-            div[data-testid="stExpander"] {
-                background-color: #262730;
-                border: 1px solid #4F4F4F;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-            <style>
-            .stApp {
-                background-color: #FFFFFF;
-                color: #000000;
-            }
-            </style>
-            """, unsafe_allow_html=True)
+def authenticate_user(username, password):
+    """Checks credentials against CSV."""
+    init_user_db()
+    df = pd.read_csv(USER_DB_FILE)
+    user_row = df[(df['username'] == username) & (df['password'] == password)]
+    return not user_row.empty
 
 # ==========================================
-# 3. SEARCH ENGINE LOGIC
+# 3. SEARCH ENGINE LOGIC (Same as before)
 # ==========================================
 class SearchEngine:
     def __init__(self):
@@ -141,7 +167,6 @@ def load_engine():
     engine = SearchEngine()
     files = glob.glob(os.path.join(DOCS_DIR, "*.txt"))
     if not files:
-        # Create dummy file if empty
         with open(os.path.join(DOCS_DIR, "welcome.txt"), "w") as f:
             f.write("Welcome to the system.")
         files = glob.glob(os.path.join(DOCS_DIR, "*.txt"))
@@ -149,158 +174,175 @@ def load_engine():
         engine.add_file(f)
     return engine
 
+def log_search(username, query):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if not os.path.exists(LOG_FILE):
+        with open(LOG_FILE, "w") as f:
+            f.write("Timestamp,User,Query\n")
+    with open(LOG_FILE, "a") as f:
+        f.write(f"{timestamp},{username},{query}\n")
+
 # ==========================================
-# 4. PAGE: LOGIN SCREEN
+# 4. INITIALIZATION
 # ==========================================
-def login_page():
-    st.markdown("<h1 style='text-align: center;'>🔒 Secure Login</h1>", unsafe_allow_html=True)
+
+# Initialize Session State
+if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
+if 'username' not in st.session_state: st.session_state['username'] = ""
+if 'is_admin' not in st.session_state: st.session_state['is_admin'] = False
+
+init_user_db() # Ensure user DB exists
+
+# ==========================================
+# 5. AUTHENTICATION PAGE
+# ==========================================
+def auth_page():
+    apply_custom_style()
     
-    col1, col2, col3 = st.columns([1,2,1])
+    st.markdown("<h1 style='text-align: center; color: #4b6cb7;'>🌈 DocSearch Portal</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Secure Access Point</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        with st.form("login_form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submit = st.form_submit_button("Log In")
-
-            if submit:
-                if username in USERS_DB and USERS_DB[username] == password:
-                    st.session_state['logged_in'] = True
-                    st.session_state['username'] = username
-                    st.success("Login successful!")
-                    st.rerun()
-                else:
-                    st.error("Invalid Username or Password")
-    
-    st.info("Demo Accounts: user/1234, alice/password")
+        # Create Tabs for Login and Register
+        tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
+        
+        # --- LOGIN TAB ---
+        with tab1:
+            with st.form("login_form"):
+                user = st.text_input("Username")
+                pw = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Access Dashboard")
+                
+                if submitted:
+                    if authenticate_user(user, pw):
+                        st.session_state['logged_in'] = True
+                        st.session_state['username'] = user
+                        st.success("Login Successful!")
+                        st.rerun()
+                    else:
+                        st.error("Invalid credentials.")
+        
+        # --- REGISTER TAB ---
+        with tab2:
+            with st.form("register_form"):
+                new_user = st.text_input("Choose Username")
+                new_pw = st.text_input("Choose Password", type="password")
+                reg_submitted = st.form_submit_button("Sign Up")
+                
+                if reg_submitted:
+                    if new_user and new_pw:
+                        success, msg = register_user(new_user, new_pw)
+                        if success:
+                            st.success(msg)
+                        else:
+                            st.error(msg)
+                    else:
+                        st.warning("Please fill all fields.")
 
 # ==========================================
-# 5. PAGE: MAIN APPLICATION
+# 6. MAIN APPLICATION
 # ==========================================
 def main_app():
-    apply_theme() # Apply CSS based on settings
+    apply_custom_style()
     
     # --- SIDEBAR ---
     with st.sidebar:
-        st.write(f"👤 Welcome, **{st.session_state['username'].capitalize()}**")
+        st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=100)
+        st.title(f"Hi, {st.session_state['username']}")
         
-        if st.button("Logout"):
+        if st.button("🚪 Logout"):
             st.session_state['logged_in'] = False
             st.session_state['is_admin'] = False
             st.rerun()
-        
-        st.divider()
-
-        # --- SETTINGS MENU ---
-        with st.expander("⚙️ Settings"):
-            # 1. Theme Toggle
-            st.subheader("Appearance")
-            theme_choice = st.radio("Theme Mode", ["Light", "Dark"], 
-                                    index=0 if st.session_state['theme']=="Light" else 1)
-            if theme_choice != st.session_state['theme']:
-                st.session_state['theme'] = theme_choice
-                st.rerun()
-
-            st.divider()
-
-            # 2. History Toggle
-            st.subheader("Data")
-            show_history = st.checkbox("Show My Search History")
-
-            st.divider()
-
-            # 3. Admin Access (Hidden by default)
-            st.subheader("Admin Zone")
-            enable_admin = st.checkbox("Enable Admin Access")
             
-            if enable_admin:
-                admin_pass = st.text_input("Admin Password", type="password")
-                # Using st.secrets is best, but hardcoded here for demo
-                CORRECT_ADMIN_PASS = "admin123" 
-                
-                if admin_pass == CORRECT_ADMIN_PASS:
-                    st.session_state['is_admin'] = True
-                    st.success("Admin Unlocked!")
-                elif admin_pass:
-                    st.session_state['is_admin'] = False
-                    st.error("Wrong Password")
-            else:
+        st.markdown("---")
+        
+        # Admin Access
+        with st.expander("🛠️ Admin Tools"):
+            admin_pass = st.text_input("Admin Key", type="password")
+            # Secret key is 'admin123'
+            if admin_pass == "admin123":
+                st.session_state['is_admin'] = True
+                st.success("Unlocked!")
+            elif admin_pass:
                 st.session_state['is_admin'] = False
+                st.error("Access Denied")
 
-    # --- ADMIN DASHBOARD (Only visible if unlocked) ---
+    # --- ADMIN DASHBOARD ---
     if st.session_state['is_admin']:
-        st.markdown("### 🛠️ Admin Dashboard")
-        tab1, tab2 = st.tabs(["📄 Manage Files", "📊 Global Logs"])
+        st.markdown("### 🛡️ Admin Command Center")
         
-        with tab1:
-            uploaded_files = st.file_uploader("Upload .txt files to Database", accept_multiple_files=True)
-            if uploaded_files:
-                for up_file in uploaded_files:
-                    with open(os.path.join(DOCS_DIR, up_file.name), "wb") as f:
-                        f.write(up_file.getbuffer())
-                st.success("Files Uploaded!")
+        # Admin Tabs
+        t1, t2, t3 = st.tabs(["📂 File Manager", "👥 User Database", "📊 Search Logs"])
+        
+        with t1:
+            st.info("Manage database documents here.")
+            uploaded = st.file_uploader("Upload .txt files", accept_multiple_files=True)
+            if uploaded:
+                for f in uploaded:
+                    with open(os.path.join(DOCS_DIR, f.name), "wb") as w:
+                        w.write(f.getbuffer())
+                st.success("Files uploaded!")
                 st.cache_resource.clear()
-                st.rerun()
             
-            st.write("Existing Files:")
-            for file in os.listdir(DOCS_DIR):
+            # Delete interface
+            st.write("**Existing Files:**")
+            for f in os.listdir(DOCS_DIR):
                 c1, c2 = st.columns([0.8, 0.2])
-                c1.text(file)
-                if c2.button("🗑️", key=f"del_{file}"):
-                    os.remove(os.path.join(DOCS_DIR, file))
+                c1.text(f)
+                if c2.button("🗑️", key=f):
+                    os.remove(os.path.join(DOCS_DIR, f))
                     st.cache_resource.clear()
                     st.rerun()
 
-        with tab2:
+        with t2:
+            st.warning("⚠️ Confidential: Registered Users")
+            if os.path.exists(USER_DB_FILE):
+                users_df = pd.read_csv(USER_DB_FILE)
+                st.dataframe(users_df, use_container_width=True)
+            else:
+                st.info("No users found.")
+
+        with t3:
+            st.info("Tracking user activity.")
             if os.path.exists(LOG_FILE):
-                df = pd.read_csv(LOG_FILE)
-                st.dataframe(df, use_container_width=True)
-                st.download_button("Download CSV", df.to_csv().encode('utf-8'), "logs.csv")
+                log_df = pd.read_csv(LOG_FILE)
+                st.dataframe(log_df, use_container_width=True)
             else:
-                st.info("No logs found.")
+                st.info("No logs yet.")
         
-        st.markdown("---") 
+        st.divider()
 
-    # --- MAIN SEARCH UI ---
-    st.title("🔎 DocSearch Pro")
+    # --- SEARCH UI ---
+    st.title("🌈 Colorful DocSearch")
+    st.markdown("Enter a keyword below to retrieve internal documents.")
     
-    # Show History if toggle is ON
-    if show_history:
-        st.subheader("🕒 Your Search History")
-        if os.path.exists(LOG_FILE):
-            df = pd.read_csv(LOG_FILE)
-            # Filter logs for current user only
-            user_logs = df[df['User'] == st.session_state['username']]
-            if not user_logs.empty:
-                st.dataframe(user_logs[['Timestamp', 'Query']], hide_index=True)
-            else:
-                st.info("No history found for you.")
-        else:
-            st.info("No logs database found.")
-        st.markdown("---")
-
-    # Search Bar
     engine = load_engine()
-    query = st.text_input("Search Documents:", placeholder="Enter keyword...")
+    
+    # Custom styled search bar
+    query = st.text_input("🔍 Search Query", placeholder="e.g. invoice, report, project...")
 
     if query:
-        # Log this search
         log_search(st.session_state['username'], query)
-        
         results = engine.search(query)
         
         if not results:
-            st.warning("No matches found.")
+            st.warning("🚫 No documents matched your query.")
         else:
-            st.success(f"Found {len(results)} matches.")
+            st.markdown(f"**Found {len(results)} matches:**")
             for res in results:
-                with st.expander(f"📄 {res['filename']} (Score: {res['score']:.2f})"):
-                    st.markdown(res['content'])
+                # Colorful result card
+                with st.expander(f"📄 {res['filename']} (Relevance: {res['score']:.2f})"):
+                    st.markdown(f"""
+                        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+                            <p style="color: #333;">{res['content']}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    st.download_button("📥 Download", res['content'], res['filename'])
 
-# ==========================================
-# 6. APP EXECUTION FLOW
-# ==========================================
-
+# --- APP FLOW ---
 if not st.session_state['logged_in']:
-    login_page()
+    auth_page()
 else:
     main_app()
