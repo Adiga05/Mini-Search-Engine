@@ -11,7 +11,7 @@ from collections import defaultdict, Counter
 # 1. CONFIGURATION & STATE
 # ==========================================
 
-st.set_page_config(page_title="DocSearch Pro", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Mini Engine", page_icon="🚀", layout="wide")
 
 DOCS_DIR = "docs"
 LOG_FILE = "search_logs.csv"
@@ -41,6 +41,26 @@ for key, val in state_keys.items():
 # ==========================================
 def apply_theme():
     """Injects CSS based on the selected theme."""
+    
+    # 1. Hide Streamlit Defaults (Menu, Footer, Header)
+    hide_streamlit_style = """
+        <style>
+        /* Hides the top right hamburger menu */
+        #MainMenu {visibility: hidden;}
+        
+        /* Hides the 'Make with Streamlit' footer and 'Manage App' button */
+        footer {visibility: hidden;}
+        
+        /* Hides the header line at the top */
+        header {visibility: hidden;}
+        
+        /* Hides the 'Deploy' button if visible */
+        .stDeployButton {display:none;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    # 2. Your Custom Theme CSS
     common_css = """
         /* Rounded Buttons */
         .stButton > button {
@@ -78,7 +98,6 @@ def apply_theme():
             div[data-testid="stExpander"] {{ background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: none; }}
             .stTextInput > div > div > input {{ border-radius: 10px; border: 1px solid #ddd; }}
             
-            /* Colorful Buttons for Light Mode */
             div.stButton > button {{
                 background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
                 color: white;
