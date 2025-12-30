@@ -199,13 +199,13 @@ init_user_db() # Ensure user DB exists
 def auth_page():
     apply_custom_style()
     
-    st.markdown("<h1 style='text-align: center; color: #4b6cb7;'>🌈 DocSearch Portal</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #4b6cb7;'>Mini Engine</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>Secure Access Point</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         # Create Tabs for Login and Register
-        tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
+        tab1, tab2 = st.tabs(["Login", "Create Account"])
         
         # --- LOGIN TAB ---
         with tab1:
@@ -251,7 +251,7 @@ def main_app():
         st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=100)
         st.title(f"Hi, {st.session_state['username']}")
         
-        if st.button("🚪 Logout"):
+        if st.button("Logout"):
             st.session_state['logged_in'] = False
             st.session_state['is_admin'] = False
             st.rerun()
@@ -291,7 +291,7 @@ def main_app():
             for f in os.listdir(DOCS_DIR):
                 c1, c2 = st.columns([0.8, 0.2])
                 c1.text(f)
-                if c2.button("🗑️", key=f):
+                if c2.button("Remove", key=f):
                     os.remove(os.path.join(DOCS_DIR, f))
                     st.cache_resource.clear()
                     st.rerun()
@@ -315,13 +315,13 @@ def main_app():
         st.divider()
 
     # --- SEARCH UI ---
-    st.title("🌈 Colorful DocSearch")
+    st.title("🔍 Mini Search Engine")
     st.markdown("Enter a keyword below to retrieve internal documents.")
     
     engine = load_engine()
     
     # Custom styled search bar
-    query = st.text_input("🔍 Search Query", placeholder="e.g. invoice, report, project...")
+    query = st.text_input("Search Query", placeholder="e.g. invoice, report, project...")
 
     if query:
         log_search(st.session_state['username'], query)
@@ -339,7 +339,7 @@ def main_app():
                             <p style="color: #333;">{res['content']}</p>
                         </div>
                     """, unsafe_allow_html=True)
-                    st.download_button("📥 Download", res['content'], res['filename'])
+                    st.download_button("Download", res['content'], res['filename'])
 
 # --- APP FLOW ---
 if not st.session_state['logged_in']:
