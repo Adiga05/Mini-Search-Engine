@@ -26,6 +26,8 @@ if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
 if 'username' not in st.session_state: st.session_state['username'] = ""
 if 'theme' not in st.session_state: st.session_state['theme'] = "Light"
 if 'admin_unlocked' not in st.session_state: st.session_state['admin_unlocked'] = False
+if 'current_page' not in st.session_state: st.session_state['current_page'] = "search" # search, admin, file_view
+if 'selected_file' not in st.session_state: st.session_state['selected_file'] = None
 
 # ==========================================
 # 2. STYLING & THEMES
@@ -39,20 +41,21 @@ def apply_theme():
             section[data-testid="stSidebar"] { background-color: #262730; }
             div[data-testid="stExpander"] { background-color: #262730; border: 1px solid #4F4F4F; }
             .stTextInput > div > div > input { background-color: #262730; color: white; }
+            .stButton > button { border-radius: 20px; }
             </style>
             """, unsafe_allow_html=True)
     else:
-        # Colorful Gradient for Light Mode
         st.markdown("""
             <style>
             .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: black; }
             section[data-testid="stSidebar"] { background-color: #ffffff; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
             div[data-testid="stExpander"] { background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .stButton > button { border-radius: 20px; background-color: #4b6cb7; color: white; }
             </style>
             """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. BACKEND LOGIC (Auth, Search, Logs)
+# 3. BACKEND LOGIC
 # ==========================================
 
 def init_user_db():
@@ -130,11 +133,10 @@ def load_engine():
     return engine
 
 # ==========================================
-# 4. PAGES
+# 4. VIEW FUNCTIONS (PAGES)
 # ==========================================
 
-# --- PAGE 1: LOGIN ---
-def page_login():
+def render_login_page():
     st.markdown("<h1 style='text-align: center;'>🔐 Access Portal</h1>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
@@ -158,125 +160,170 @@ def page_login():
                     if success: st.success(msg)
                     else: st.error(msg)
 
-# --- PAGE 2: SEARCH ENGINE (User View) ---
-def page_search_engine():
-    st.title(f"🔎 Hello, {st.session_state['username']}")
+def render_file_view():
+    """Displays a single file in a dedicated 'page'."""
+    file_data = st.session_state['selected_file']
     
-    # Tabs for Search vs History
-    tab_search, tab_history = st.tabs(["🔍 Search", "🕒 My History"])
-    
-    with tab_search:
-        engine = load_engine()
-        query = st.text_input("Find documents:", placeholder="Keywords...")
-        if query:
-            log_search(st.session_state['username'], query)
-            results = engine.search(query)
-            if results:
-                st.success(f"Found {len(results)} matches.")
-                for res in results:
-                    with st.expander(f"📄 {res['filename']} (Score: {res['score']:.2f})"):
-                        st.markdown(res['content'])
-            else:
-                st.warning("No results found.")
-
-    with tab_history:
-        st.subheader("Your Search Activity")
-        if os.path.exists(LOG_FILE):
-            df = pd.read_csv(LOG_FILE)
-            user_df = df[df['User'] == st.session_state['username']]
-            if not user_df.empty:
-                st.dataframe(user_df[['Timestamp', 'Query']], use_container_width=True)
-            else:
-                st.info("No history yet.")
-        else:
-            st.info("No logs database.")
-
-# --- PAGE 3: ADMIN DASHBOARD (Separate View) ---
-def page_admin_dashboard():
-    st.title("🛡️ Admin Command Center")
-    
-    # Locked State
-    if not st.session_state['admin_unlocked']:
-        st.markdown("### 🔒 Restricted Area")
-        password = st.text_input("Enter Admin Password to Unlock:", type="password")
-        if st.button("Unlock"):
-            if password == "admin123":
-                st.session_state['admin_unlocked'] = True
-                st.rerun()
-            else:
-                st.error("Access Denied.")
-        return
-
-    # Unlocked State
-    if st.button("Lock Dashboard"):
-        st.session_state['admin_unlocked'] = False
+    if st.button("⬅️ Back to Search"):
+        st.session_state['selected_file'] = None
+        st.session_state['current_page'] = "search"
         st.rerun()
-
-    t1, t2, t3 = st.tabs(["📂 File Manager", "👥 User DB", "📊 Global Logs"])
     
-    with t1:
-        st.subheader("Database Management")
-        uploaded = st.file_uploader("Upload New Files", accept_multiple_files=True)
-        if uploaded:
-            for f in uploaded:
-                with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
-            st.success("Uploaded.")
-            st.cache_resource.clear()
+    st.markdown(f"# 📄 {file_data['filename']}")
+    st.caption(f"Word Count: {file_data['total_words']}")
+    st.divider()
+    
+    # Display Content in a clean box
+    st.code(file_data['content'], language='markdown') # Using code block for raw text preservation
+    
+    st.download_button(
+        label="📥 Download File",
+        data=file_data['content'],
+        file_name=file_data['filename'],
+        mime='text/plain'
+    )
+
+def render_search_page():
+    st.title(f"🔎 DocSearch")
+    st.caption("Search Internal Documents")
+    
+    engine = load_engine()
+    query = st.text_input("Keywords:", placeholder="Type to search...")
+    
+    if query:
+        log_search(st.session_state['username'], query)
+        results = engine.search(query)
         
-        st.write("---")
-        st.write("**Current Files:**")
+        if not results:
+            st.warning("No matches found.")
+        else:
+            st.success(f"Found {len(results)} documents.")
+            for res in results:
+                # Result Card
+                col1, col2 = st.columns([0.85, 0.15])
+                with col1:
+                    st.markdown(f"**📄 {res['filename']}** (Relevance: {res['score']:.2f})")
+                    # Preview snippet (first 100 chars)
+                    snippet = res['content'][:100].replace("\n", " ") + "..."
+                    st.caption(snippet)
+                with col2:
+                    # The "Open" button triggers a page switch
+                    if st.button("Open ↗️", key=f"btn_{res['filename']}"):
+                        st.session_state['selected_file'] = res
+                        st.session_state['current_page'] = "file_view"
+                        st.rerun()
+                st.divider()
+
+def render_admin_page():
+    st.title("🛡️ Admin Dashboard")
+    
+    if st.button("⬅️ Exit Admin Mode"):
+        st.session_state['current_page'] = "search"
+        st.rerun()
+        
+    st.markdown("---")
+    
+    # Tab 1: Upload (Clean, no list shown)
+    st.subheader("📤 Upload Documents")
+    uploaded = st.file_uploader("Drop .txt files here", accept_multiple_files=True)
+    if uploaded:
+        for f in uploaded:
+            with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
+        st.success("Uploaded successfully.")
+        st.cache_resource.clear()
+
+    st.markdown("---")
+    
+    # Tab 2: Delete (Hidden by default as requested)
+    with st.expander("🗑️ Delete Files (Click to View Current Files)"):
+        st.warning("Warning: Deletions are permanent.")
         for f in os.listdir(DOCS_DIR):
             c1, c2 = st.columns([0.9, 0.1])
             c1.text(f)
-            if c2.button("❌", key=f):
+            if c2.button("❌", key=f"del_{f}"):
                 os.remove(os.path.join(DOCS_DIR, f))
                 st.cache_resource.clear()
                 st.rerun()
 
-    with t2:
-        st.subheader("Registered Users")
-        if os.path.exists(USER_DB_FILE):
-            st.dataframe(pd.read_csv(USER_DB_FILE), use_container_width=True)
-
-    with t3:
-        st.subheader("Global Search Logs")
-        if os.path.exists(LOG_FILE):
-            st.dataframe(pd.read_csv(LOG_FILE), use_container_width=True)
+    st.markdown("---")
+    
+    # Tab 3: Global Logs
+    st.subheader("📊 Global Search Logs")
+    if os.path.exists(LOG_FILE):
+        st.dataframe(pd.read_csv(LOG_FILE), use_container_width=True)
 
 # ==========================================
-# 5. MAIN CONTROLLER
+# 5. MAIN APP CONTROLLER
 # ==========================================
 
-apply_theme() # Inject CSS
+apply_theme()
 
 if not st.session_state['logged_in']:
-    page_login()
+    render_login_page()
 else:
-    # --- SIDEBAR NAVIGATION ---
+    # --- SIDEBAR SETTINGS ---
     with st.sidebar:
-        st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=50)
         st.write(f"User: **{st.session_state['username']}**")
         
-        st.markdown("---")
-        # Navigation Menu
-        page_selection = st.radio("Go to:", ["Search Engine", "Admin Dashboard"])
-        
-        st.markdown("---")
-        # Theme Toggle
-        st.subheader("Appearance")
-        theme = st.radio("Theme", ["Light", "Dark"], index=0 if st.session_state['theme']=="Light" else 1)
-        if theme != st.session_state['theme']:
-            st.session_state['theme'] = theme
-            st.rerun()
+        # SETTINGS MENU
+        with st.expander("⚙️ Settings", expanded=False):
+            # 1. Theme
+            st.markdown("**Theme**")
+            theme = st.radio("Mode", ["Light", "Dark"], label_visibility="collapsed", index=0 if st.session_state['theme']=="Light" else 1)
+            if theme != st.session_state['theme']:
+                st.session_state['theme'] = theme
+                st.rerun()
             
+            st.divider()
+            
+            # 2. History
+            st.markdown("**User History**")
+            if st.checkbox("Show My History"):
+                if os.path.exists(LOG_FILE):
+                    df = pd.read_csv(LOG_FILE)
+                    user_df = df[df['User'] == st.session_state['username']]
+                    st.dataframe(user_df[['Timestamp', 'Query']], hide_index=True)
+                else:
+                    st.caption("No history.")
+            
+            st.divider()
+
+            # 3. Admin Login
+            st.markdown("**Admin Access**")
+            if not st.session_state['admin_unlocked']:
+                admin_pw = st.text_input("Password", type="password", placeholder="Enter Admin Key")
+                if st.button("Unlock Admin"):
+                    if admin_pw == "admin123":
+                        st.session_state['admin_unlocked'] = True
+                        st.session_state['current_page'] = "admin"
+                        st.rerun()
+                    else:
+                        st.error("Invalid")
+            else:
+                if st.button("Go to Admin Dashboard"):
+                    st.session_state['current_page'] = "admin"
+                    st.rerun()
+                if st.button("Lock Admin"):
+                    st.session_state['admin_unlocked'] = False
+                    st.session_state['current_page'] = "search"
+                    st.rerun()
+
         st.markdown("---")
-        if st.button("Logout"):
+        # Explicit Logout Button
+        if st.button("🚪 Logout"):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
+            st.session_state['current_page'] = "search"
             st.rerun()
 
-    # --- PAGE ROUTING ---
-    if page_selection == "Search Engine":
-        page_search_engine()
-    elif page_selection == "Admin Dashboard":
-        page_admin_dashboard()
+    # --- PAGE ROUTING LOGIC ---
+    if st.session_state['current_page'] == "search":
+        render_search_page()
+    elif st.session_state['current_page'] == "file_view":
+        render_file_view()
+    elif st.session_state['current_page'] == "admin":
+        if st.session_state['admin_unlocked']:
+            render_admin_page()
+        else:
+            st.error("Access Denied. Please unlock in Settings.")
+            st.session_state['current_page'] = "search"
