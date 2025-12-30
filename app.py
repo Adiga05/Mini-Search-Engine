@@ -41,26 +41,6 @@ for key, val in state_keys.items():
 # ==========================================
 def apply_theme():
     """Injects CSS based on the selected theme."""
-    
-    # 1. Hide Streamlit Defaults (Menu, Footer, Header)
-    hide_streamlit_style = """
-        <style>
-        /* Hides the top right hamburger menu */
-        #MainMenu {visibility: hidden;}
-        
-        /* Hides the 'Make with Streamlit' footer and 'Manage App' button */
-        footer {visibility: hidden;}
-        
-        /* Hides the header line at the top */
-        header {visibility: hidden;}
-        
-        /* Hides the 'Deploy' button if visible */
-        .stDeployButton {display:none;}
-        </style>
-        """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-    # 2. Your Custom Theme CSS
     common_css = """
         /* Rounded Buttons */
         .stButton > button {
@@ -98,6 +78,7 @@ def apply_theme():
             div[data-testid="stExpander"] {{ background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: none; }}
             .stTextInput > div > div > input {{ border-radius: 10px; border: 1px solid #ddd; }}
             
+            /* Colorful Buttons for Light Mode */
             div.stButton > button {{
                 background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
                 color: white;
@@ -207,7 +188,7 @@ def load_engine():
 
 def render_login_page():
     st.markdown("<br><br>", unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align: center; color: #4b6cb7;'>🔒 DocSearch Pro</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #4b6cb7;'>Mini Engine</h1>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center; color: gray;'>Internal Document Retrieval System</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1,2,1])
@@ -261,13 +242,13 @@ def render_file_view():
     )
 
 def render_search_page():
-    st.markdown("## 🔎 Document Search")
+    st.markdown("## 🔎 Search")
     st.caption(f"Searching database as: {st.session_state['username']}")
     
     engine = load_engine()
     
     # Search Bar
-    query = st.text_input("", placeholder="Type keywords here (e.g. invoice, report)...")
+    query = st.text_input("", placeholder="Type keywords here (e.g. apple, tech)...")
     
     if query:
         log_search(st.session_state['username'], query)
@@ -318,7 +299,7 @@ def render_admin_page():
             for f in os.listdir(DOCS_DIR):
                 c1, c2 = st.columns([0.9, 0.1])
                 c1.text(f)
-                if c2.button("❌", key=f"del_{f}"):
+                if c2.button("Remove", key=f"del_{f}"):
                     os.remove(os.path.join(DOCS_DIR, f))
                     st.cache_resource.clear()
                     st.rerun()
@@ -397,7 +378,7 @@ else:
                     st.rerun()
 
         st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
