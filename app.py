@@ -29,7 +29,8 @@ state_defaults = {
     'theme': "Light",
     'admin_unlocked': False,
     'current_page': "search",
-    'selected_file': None
+    'selected_file': None,
+    'last_logged_query': None # NEW: To prevent duplicate logs
 }
 
 for key, val in state_defaults.items():
@@ -37,10 +38,9 @@ for key, val in state_defaults.items():
         st.session_state[key] = val
 
 # ==========================================
-# 2. COLORFUL & ATTRACTIVE UI (CSS)
+# 2. UI STYLING (FLOATING ISLANDS)
 # ==========================================
 def apply_theme():
-    # Base CSS: Fonts, Gradients, and Glassmorphism
     st.markdown("""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
@@ -49,7 +49,43 @@ def apply_theme():
             font-family: 'Poppins', sans-serif;
         }
         
-        /* 1. ANIMATED BUTTONS */
+        /* --- 1. FLOATING ISLAND (LOGIN) --- */
+        .floating-island-form {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(25px);
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255,255,255,0.8);
+            margin: 60px auto;
+            text-align: center;
+        }
+
+        /* --- 2. FLOATING ISLAND (SEARCH BAR) --- */
+        /* Target the specific Streamlit text input container */
+        div[data-testid="stTextInput"] {
+            background: white;
+            border-radius: 50px;
+            padding: 5px 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            width: 80%;
+            margin: 0 auto 30px auto; /* Center it */
+        }
+        div[data-testid="stTextInput"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        /* Remove default border of the input inside */
+        div[data-testid="stTextInput"] > div > div > input {
+            border: none;
+            background: transparent;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        /* --- 3. ANIMATED BUTTONS --- */
         div.stButton > button {
             transition: all 0.3s ease;
             border-radius: 12px;
@@ -63,40 +99,25 @@ def apply_theme():
             z-index: 99;
         }
         
-        /* 2. FLOATING ISLAND LOGIN CARD */
-        .floating-island {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.6);
-            margin: 50px auto; /* Centers it vertically/horizontally in column */
-            text-align: center;
-        }
-
-        /* 3. GLASS CARDS (General) */
+        /* --- 4. GLASS CARDS --- */
         .glass-card {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(12px);
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 24px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
             margin-bottom: 20px;
         }
 
-        /* 4. SETTINGS DROPDOWNS */
+        /* --- 5. SETTINGS DROPDOWNS --- */
         div[data-testid="stExpander"] {
-            background-color: rgba(255, 255, 255, 0.4);
+            background-color: rgba(255, 255, 255, 0.5);
             border-radius: 10px;
             border: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             margin-bottom: 10px;
         }
         
-        /* 5. PROFILE IMAGE */
         .profile-img {
             width: 90px;
             height: 90px;
@@ -108,80 +129,45 @@ def apply_theme():
         </style>
     """, unsafe_allow_html=True)
 
-    # Dynamic Theme Colors
+    # Theme Colors
     if st.session_state['theme'] == "Dark":
         st.markdown("""
             <style>
-            .stApp {
-                background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
-                color: #ffffff;
-            }
-            section[data-testid="stSidebar"] {
-                background-color: rgba(30, 30, 50, 0.85);
-                border-right: 1px solid rgba(255,255,255,0.1);
-            }
-            .stTextInput > div > div > input {
-                background-color: rgba(0,0,0,0.3);
-                color: white;
-                border: 1px solid rgba(255,255,255,0.2);
-            }
-            div.stButton > button {
-                background: linear-gradient(90deg, #da22ff, #9733ee);
-                color: white;
-            }
+            .stApp { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); color: #ffffff; }
+            section[data-testid="stSidebar"] { background-color: rgba(30, 30, 50, 0.85); border-right: 1px solid rgba(255,255,255,0.1); }
+            div.stButton > button { background: linear-gradient(90deg, #da22ff, #9733ee); color: white; }
             h1, h2, h3, p { color: white !important; }
+            /* Dark Mode Overrides for Search Island */
+            div[data-testid="stTextInput"] { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }
+            div[data-testid="stTextInput"] > div > div > input { color: white; }
+            .floating-island-form { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(255,255,255,0.1); }
             </style>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
             <style>
-            .stApp {
-                background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
-                color: #333;
-            }
-            section[data-testid="stSidebar"] {
-                background-color: rgba(255, 255, 255, 0.6);
-                backdrop-filter: blur(10px);
-            }
-            .stTextInput > div > div > input {
-                background-color: rgba(255,255,255,0.8);
-                color: #333;
-                border: 1px solid #a1c4fd;
-            }
-            div.stButton > button {
-                background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-                color: white;
-            }
+            .stApp { background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); color: #333; }
+            section[data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); }
+            div.stButton > button { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: white; }
             h1, h2, h3 { color: #2c3e50 !important; }
             </style>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. BACKEND LOGIC (Database & Auth)
+# 3. BACKEND LOGIC
 # ==========================================
 
 def init_dbs():
-    # REMOVED email column, reverted to username
     if not os.path.exists(USER_DB_FILE):
         df = pd.DataFrame(columns=["username", "password", "created_at"])
-        # Default Admin Account
         df.loc[0] = ["Admin", "admin123", datetime.now().strftime("%Y-%m-%d")]
         df.to_csv(USER_DB_FILE, index=False)
-
-def log_login_activity(username, status="Success"):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if not os.path.exists(LOGIN_ACTIVITY_FILE):
-        with open(LOGIN_ACTIVITY_FILE, "w") as f: f.write("Timestamp,User,Status\n")
-    with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{timestamp},{username},{status}\n")
 
 def register_user(username, password):
     init_dbs()
     df = pd.read_csv(USER_DB_FILE)
-    
-    # Check if username exists
     if username in df['username'].values:
         return False, "Username already taken."
-    
     new_user = pd.DataFrame([[username, password, datetime.now().strftime("%Y-%m-%d")]], 
                             columns=["username", "password", "created_at"])
     df = pd.concat([df, new_user], ignore_index=True)
@@ -191,21 +177,34 @@ def register_user(username, password):
 def authenticate_user(username, password):
     init_dbs()
     df = pd.read_csv(USER_DB_FILE)
-    # Match Username and Password
     user_row = df[(df['username'] == username) & (df['password'] == password)]
     
+    # Log Activity
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if not os.path.exists(LOGIN_ACTIVITY_FILE):
+        with open(LOGIN_ACTIVITY_FILE, "w") as f: f.write("Timestamp,User,Status\n")
+    
     if not user_row.empty:
-        log_login_activity(username, "Success")
+        with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{ts},{username},Success\n")
         return True
     else:
-        log_login_activity(username, "Failed")
+        with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{ts},{username},Failed\n")
         return False
 
 def log_search(username, query):
+    # --- FIX FOR DUPLICATE LOGS ---
+    # Only log if the query is different from the last one in this session
+    if st.session_state['last_logged_query'] == query:
+        return
+
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if not os.path.exists(LOG_FILE):
         with open(LOG_FILE, "w") as f: f.write("Timestamp,User,Query\n")
+    
     with open(LOG_FILE, "a") as f: f.write(f"{timestamp},{username},{query}\n")
+    
+    # Update session state to remember we logged this
+    st.session_state['last_logged_query'] = query
 
 class SearchEngine:
     def __init__(self):
@@ -255,23 +254,26 @@ def load_engine():
     return engine
 
 # ==========================================
-# 4. VIEW FUNCTIONS (UI Pages)
+# 4. VIEW FUNCTIONS
 # ==========================================
 
 def render_login_page():
-    # Floating Island CSS applied via markdown
+    # Floating Island Layout
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
         st.markdown("""
-            <div class="floating-island">
+            <div class="floating-island-form">
                 <h1 style="color: #0072ff; font-weight: 800; margin-bottom: 5px;">🚀 Mini Engine</h1>
                 <p style="color: #555; font-size: 1.1em;">Secure Document Intelligence</p>
                 <hr style="opacity: 0.2; margin: 20px 0;">
             </div>
         """, unsafe_allow_html=True)
         
-        # Tabs for Login/Register inside the island context
+        # Tabs container (Login/Register)
+        # We put tabs *outside* the island div in markdown, but *inside* the column
+        # To make it look like part of the island, we style the tabs in CSS or simple layout
+        
         tab1, tab2 = st.tabs(["Login", "Create Account"])
         
         with tab1:
@@ -321,14 +323,17 @@ def render_file_view():
 def render_search_page():
     # Welcome Header
     st.markdown(f"""
-        <div class="glass-card" style="margin-bottom: 30px;">
+        <div class="glass-card" style="margin-bottom: 40px; text-align: center;">
             <h1 style="margin:0;">🔎 Knowledge Hub</h1>
-            <p style="margin:0; opacity:0.8;">Logged in as: <b>{st.session_state['username']}</b></p>
+            <p style="margin:0; opacity:0.8;">Welcome, <b>{st.session_state['username']}</b></p>
         </div>
     """, unsafe_allow_html=True)
     
     engine = load_engine()
-    query = st.text_input("", placeholder="Type keywords (e.g., 'contract', 'finance')...")
+    
+    # --- FLOATING ISLAND SEARCH BAR ---
+    # The CSS defined earlier will target this text_input automatically
+    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
     
     if query:
         log_search(st.session_state['username'], query)
@@ -340,7 +345,6 @@ def render_search_page():
             st.warning("No documents found matching your query.")
         else:
             for res in results:
-                # Custom Card HTML
                 st.markdown(f"""
                     <div style="
                         background: rgba(255,255,255,0.8);
@@ -362,7 +366,6 @@ def render_search_page():
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Open Button
                 col1, col2 = st.columns([0.88, 0.12])
                 with col2:
                     if st.button("Open ↗", key=f"btn_{res['filename']}"):
@@ -379,10 +382,10 @@ def render_admin_page():
     
     st.markdown("---")
     
-    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Logins"])
+    t1, t2, t3 = st.tabs(["📂 Files", "📊 User Searches", "👥 Logins"])
     
     with t1:
-        # Changed Layout: Upload first, then files below it (Stacked)
+        # Stacked Layout: Upload First, then Files below
         st.markdown("### Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
         if uploaded:
@@ -401,9 +404,8 @@ def render_admin_page():
             st.info("Database is empty.")
         else:
             for f in files:
-                # Use a clean container for each file row
                 with st.container():
-                    col_a, col_b = st.columns([0.85, 0.15])
+                    col_a, col_b = st.columns([0.8, 0.15])
                     with col_a:
                         st.text(f"📄 {f}")
                     with col_b:
@@ -411,7 +413,7 @@ def render_admin_page():
                             os.remove(os.path.join(DOCS_DIR, f))
                             st.cache_resource.clear()
                             st.rerun()
-                    st.divider()
+                    st.markdown("<hr style='margin:5px 0; opacity:0.1'>", unsafe_allow_html=True)
 
     with t2:
         if os.path.exists(LOG_FILE):
@@ -433,9 +435,7 @@ init_dbs()
 if not st.session_state['logged_in']:
     render_login_page()
 else:
-    # --- SIDEBAR (Refined Settings Portal) ---
     with st.sidebar:
-        # Profile Picture & Name
         st.markdown(f"""
             <div style="text-align:center; margin-bottom: 20px;">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={st.session_state['username']}" class="profile-img">
@@ -446,7 +446,7 @@ else:
         st.markdown("---")
         st.markdown("### ⚙️ Settings Portal")
 
-        # 1. THEME DROPDOWN
+        # 1. THEME
         with st.expander("🎨 Theme"):
             current_theme = st.session_state['theme']
             new_theme = st.radio("Select Mode:", ["Light", "Dark"], 
@@ -455,13 +455,11 @@ else:
                 st.session_state['theme'] = new_theme
                 st.rerun()
 
-        # 2. SEARCH HISTORY DROPDOWN
+        # 2. HISTORY
         with st.expander("🕒 Search History"):
             if os.path.exists(LOG_FILE):
                 df = pd.read_csv(LOG_FILE)
-                # Filter by logged-in username
                 my_logs = df[df['User'] == st.session_state['username']]
-                
                 if not my_logs.empty:
                     st.dataframe(my_logs[['Timestamp', 'Query']], hide_index=True)
                 else:
@@ -469,7 +467,7 @@ else:
             else:
                 st.info("No history")
 
-        # 3. ADMIN DROPDOWN
+        # 3. ADMIN
         with st.expander("🛡️ Admin Page"):
             if not st.session_state['admin_unlocked']:
                 pwd = st.text_input("Enter Key", type="password")
@@ -497,7 +495,6 @@ else:
             st.session_state['current_page'] = "search"
             st.rerun()
 
-    # --- ROUTING ---
     if st.session_state['current_page'] == "search":
         render_search_page()
     elif st.session_state['current_page'] == "file_view":
