@@ -38,7 +38,7 @@ for key, val in state_defaults.items():
         st.session_state[key] = val
 
 # ==========================================
-# 2. UI STYLING (ADJUSTED HEIGHT & ALIGNMENT)
+# 2. UI STYLING (ANIMATED & RESIZED)
 # ==========================================
 def apply_theme():
     st.markdown("""
@@ -49,60 +49,70 @@ def apply_theme():
             font-family: 'Poppins', sans-serif;
         }
         
-        /* --- 1. FLOATING ISLAND (LOGIN) - REDUCED HEIGHT --- */
+        /* --- 0. POP-UP ANIMATION KEYFRAMES --- */
+        @keyframes popUp {
+            0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        /* --- 1. FLOATING ISLAND (LOGIN) - TALLER & ANIMATED --- */
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
-            border-radius: 30px;
-            padding: 30px; /* Reduced from 30px */
-            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
+            border-radius: 25px;
+            padding: 40px; /* Increased padding for height */
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.8);
             margin: 40px auto;
             text-align: center;
-            max-width: 450px; 
+            max-width: 500px; /* Wider */
+            
+            /* Apply the Pop-Up Animation */
+            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* --- 2. FLOATING ISLAND (SEARCH BAR) - CENTERED & COMPACT --- */
+        /* --- 2. FLOATING INPUTS (Search Bar & Admin Key) --- */
+        /* Global Style for Floating Inputs */
         div[data-testid="stTextInput"] {
             background: white;
-            border-radius: 50px;
-            /* Flexbox to center the input vertically */
+            border-radius: 15px;
             display: flex; 
             align-items: center; 
-            height: 50px; /* Fixed sleek height */
-            padding: 0px 20px; /* Horizontal padding only */
-            
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            height: 55px; /* Increased Height */
+            padding: 0px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             border: 1px solid rgba(0,0,0,0.05);
             transition: all 0.3s ease;
-            width: 60%;
-            max-width: 700px;
-            margin: 0 auto 25px auto;
         }
         div[data-testid="stTextInput"]:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
         }
-        
-        /* Inner Input Styling */
-        div[data-testid="stTextInput"] > div {
-            width: 100%; /* Ensure input takes full width of container */
-        }
+        div[data-testid="stTextInput"] > div { width: 100%; }
         div[data-testid="stTextInput"] > div > div > input {
-            border: none;
-            background: transparent;
-            font-size: 1.1rem;
-            color: #333;
-            margin-top: 5px; /* Micro adjustment for visual center */
+            border: none; background: transparent; font-size: 1.1rem; color: #333; margin-top: 5px;
+        }
+
+        /* SPECIFIC: Search Bar (In Main Area) gets distinct width */
+        .main div[data-testid="stTextInput"] {
+            width: 70%;
+            max-width: 800px;
+            margin: 0 auto 25px auto;
+        }
+
+        /* SPECIFIC: Sidebar Inputs (Admin Key) get full width */
+        section[data-testid="stSidebar"] div[data-testid="stTextInput"] {
+            width: 100% !important; /* Full length of sidebar */
+            margin-bottom: 10px;
         }
 
         /* --- 3. ANIMATED BUTTONS --- */
         div.stButton > button {
             transition: all 0.3s ease;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
             border: none;
-            padding: 0.4rem 1rem;
+            padding: 0.5rem 1rem;
         }
         div.stButton > button:hover {
             transform: translateY(-2px) scale(1.02);
@@ -118,6 +128,7 @@ def apply_theme():
             border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 24px;
             margin-bottom: 20px;
+            animation: popUp 0.5s ease-out forwards; /* Also animate results */
         }
 
         /* --- 5. SETTINGS DROPDOWNS --- */
@@ -335,7 +346,7 @@ def render_search_page():
     engine = load_engine()
     
     # FLOATING ISLAND SEARCH BAR
-    query = st.text_input("", placeholder="Search anything (e.g. 'Finance', 'Tech')...")
+    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
     
     if query:
         log_search(st.session_state['username'], query)
@@ -347,7 +358,7 @@ def render_search_page():
             st.warning("No documents found matching your query.")
         else:
             for res in results:
-                # REMOVED CONTENT SNIPPET HERE, ONLY SHOWING FILE NAME AND SCORE
+                # ONLY SHOW FILE NAME AND SCORE (No Snippet)
                 st.markdown(f"""
                     <div style="
                         background: rgba(255,255,255,0.8);
@@ -385,7 +396,6 @@ def render_admin_page():
     t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
     
     with t1:
-        # Stacked Layout: Upload First, then Files below
         st.markdown("### 📤 Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
         if uploaded:
