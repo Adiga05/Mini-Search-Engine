@@ -40,53 +40,141 @@ for key, val in state_keys.items():
 # 2. ADVANCED STYLING (CSS)
 # ==========================================
 def apply_theme():
-    """Injects CSS based on the selected theme."""
-    common_css = """
-        /* Rounded Buttons */
-        .stButton > button {
-            border-radius: 12px;
-            padding: 8px 16px;
-            font-weight: 600;
+    """Injects Advanced CSS with Gradients and Glassmorphism."""
+    
+    # Common CSS for Fonts and Transitions
+    base_css = """
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        html, body, [class*="css"] {
+            font-family: 'Poppins', sans-serif;
         }
-        /* Profile Image Styling */
+        
+        /* Smooth transitions */
+        .stButton > button, div[data-testid="stExpander"], input {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Card Styling for Search Results */
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Profile Image */
         .profile-img {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
-            margin-bottom: 10px;
-            border: 3px solid #4b6cb7;
+            margin-bottom: 15px;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
+    </style>
     """
-    
+
     if st.session_state['theme'] == "Dark":
         st.markdown(f"""
+            {base_css}
             <style>
-            {common_css}
-            .stApp {{ background-color: #0E1117; color: #E6E6E6; }}
-            section[data-testid="stSidebar"] {{ background-color: #1A1C24; border-right: 1px solid #2D2D2D; }}
-            div[data-testid="stExpander"] {{ background-color: #262730; border: 1px solid #4F4F4F; border-radius: 8px; }}
-            .stTextInput > div > div > input {{ background-color: #262730; color: white; border-radius: 10px; }}
+            /* Dark Mode Gradient */
+            .stApp {{
+                background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+                color: #ffffff;
+            }}
+            
+            /* Sidebar Dark */
+            section[data-testid="stSidebar"] {{
+                background-color: rgba(15, 32, 39, 0.95);
+                border-right: 1px solid #2c5364;
+            }}
+
+            /* Inputs Dark */
+            .stTextInput > div > div > input {{
+                background-color: rgba(255, 255, 255, 0.1);
+                color: white;
+                border: 1px solid #2c5364;
+                border-radius: 10px;
+            }}
+            
+            /* Buttons Dark */
+            .stButton > button {{
+                background: linear-gradient(90deg, #8E2DE2, #4A00E0);
+                color: white;
+                border: none;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(74, 0, 224, 0.4);
+            }}
+            .stButton > button:hover {{
+                transform: scale(1.02);
+                box-shadow: 0 6px 20px rgba(74, 0, 224, 0.6);
+            }}
+
+            /* Expanders Dark */
+            div[data-testid="stExpander"] {{
+                background-color: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+            }}
             </style>
             """, unsafe_allow_html=True)
     else:
         st.markdown(f"""
+            {base_css}
             <style>
-            {common_css}
-            .stApp {{ background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #1a1a1a; }}
-            section[data-testid="stSidebar"] {{ background-color: #ffffff; box-shadow: 4px 0 10px rgba(0,0,0,0.05); }}
-            div[data-testid="stExpander"] {{ background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: none; }}
-            .stTextInput > div > div > input {{ border-radius: 10px; border: 1px solid #ddd; }}
+            /* Light Mode Gradient */
+            .stApp {{
+                background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+                color: #2c3e50;
+            }}
             
-            /* Colorful Buttons for Light Mode */
-            div.stButton > button {{
-                background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            /* Sidebar Light */
+            section[data-testid="stSidebar"] {{
+                background-color: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(10px);
+                box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+            }}
+
+            /* Inputs Light */
+            .stTextInput > div > div > input {{
+                background-color: rgba(255, 255, 255, 0.9);
+                border: 1px solid #a1c4fd;
+                border-radius: 10px;
+                color: #333;
+            }}
+            
+            /* Buttons Light - Vibrant Gradients */
+            .stButton > button {{
+                background: linear-gradient(90deg, #00c6ff, #0072ff);
                 color: white;
                 border: none;
+                border-radius: 12px;
+                font-weight: 600;
+                box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
             }}
-            div.stButton > button:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            .stButton > button:hover {{
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0, 114, 255, 0.5);
+            }}
+
+            /* Expanders Light */
+            div[data-testid="stExpander"] {{
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+                border: none;
+            }}
+            
+            /* Result Cards specific for Light Mode */
+            .result-card {{
+                background: white;
+                color: #333;
             }}
             </style>
             """, unsafe_allow_html=True)
@@ -102,7 +190,6 @@ def init_dbs():
         df.to_csv(USER_DB_FILE, index=False)
 
 def log_login_activity(username, status="Success"):
-    """Logs every login attempt."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if not os.path.exists(LOGIN_ACTIVITY_FILE):
         with open(LOGIN_ACTIVITY_FILE, "w") as f: f.write("Timestamp,User,Status\n")
@@ -187,12 +274,33 @@ def load_engine():
 # ==========================================
 
 def render_login_page():
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    st.markdown("<h1 style='text-align: center; color: #4b6cb7;'>Mini Engine</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: gray;'>Internal Document Retrieval System</p>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1,2,1])
+    # Centered Glass Card for Login
+    st.markdown("""
+        <style>
+        .login-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.5);
+            margin-top: 50px;
+        }
+        h1 { color: #0072ff; font-weight: 700; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
+        st.markdown("""
+            <div class='login-container'>
+                <h1>🚀 Mini Engine</h1>
+                <p>Secure Internal Document Search</p>
+            </div>
+            <br>
+        """, unsafe_allow_html=True)
+        
         tab1, tab2 = st.tabs(["🔑 Login", "📝 Sign Up"])
         with tab1:
             with st.form("login"):
@@ -216,7 +324,7 @@ def render_login_page():
 def render_file_view():
     file_data = st.session_state['selected_file']
     
-    # Header
+    # Header with styling
     c1, c2 = st.columns([0.2, 0.8])
     with c1:
         if st.button("⬅️ Back"):
@@ -224,15 +332,15 @@ def render_file_view():
             st.session_state['current_page'] = "search"
             st.rerun()
     with c2:
-        st.title(f"📄 {file_data['filename']}")
+        st.markdown(f"<h2 style='color: #0072ff;'>📄 {file_data['filename']}</h2>", unsafe_allow_html=True)
     
     st.markdown("---")
     
-    # File Content Display
-    st.info(f"Word Count: {file_data['total_words']}")
-    st.text_area("Content Preview", file_data['content'], height=400)
+    # File Content Display in a clean box
+    st.info(f"📊 Word Count: {file_data['total_words']}")
+    st.text_area("Content Preview", file_data['content'], height=500)
     
-    # Download
+    # Download Button with custom logic
     st.download_button(
         label="📥 Download Original File",
         data=file_data['content'],
@@ -242,64 +350,90 @@ def render_file_view():
     )
 
 def render_search_page():
-    st.markdown("## 🔎 Search")
-    st.caption(f"Searching database as: {st.session_state['username']}")
+    st.markdown(f"""
+        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+            <h1 style="margin:0;">🔎 Knowledge Base</h1>
+            <p style="margin:0; opacity: 0.8;">Searching as: <b>{st.session_state['username']}</b></p>
+        </div>
+    """, unsafe_allow_html=True)
     
     engine = load_engine()
     
     # Search Bar
-    query = st.text_input("", placeholder="Type keywords here (e.g. apple, tech)...")
+    query = st.text_input("", placeholder="Type keywords here (e.g. project, data, finance)...")
     
     if query:
         log_search(st.session_state['username'], query)
         results = engine.search(query)
         
-        st.markdown("### Results")
+        st.markdown(f"### Found {len(results)} Matches")
+        
         if not results:
             st.warning("No matches found.")
         else:
             for res in results:
-                with st.container():
-                    # Card Layout
-                    c1, c2 = st.columns([0.85, 0.15])
-                    with c1:
-                        st.markdown(f"**{res['filename']}**")
-                        st.caption(f"Relevance Score: {res['score']:.2f}")
-                        st.markdown(f"*{res['content'][:80].replace(chr(10), ' ')}...*")
-                    with c2:
-                        if st.button("Open", key=f"btn_{res['filename']}"):
-                            st.session_state['selected_file'] = res
-                            st.session_state['current_page'] = "file_view"
-                            st.rerun()
-                    st.divider()
+                # Custom HTML Card for visuals
+                st.markdown(f"""
+                    <div style="
+                        background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
+                        padding: 20px;
+                        border-radius: 15px;
+                        margin-bottom: 10px;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                        border-left: 5px solid #0072ff;
+                    ">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="margin:0; color: #333;">📄 {res['filename']}</h3>
+                            <span style="
+                                background: #0072ff; 
+                                color: white; 
+                                padding: 5px 10px; 
+                                border-radius: 15px; 
+                                font-size: 0.8rem;
+                                font-weight: bold;
+                            ">Score: {res['score']:.2f}</span>
+                        </div>
+                        <p style="color: #666; font-style: italic; margin-top: 10px;">
+                            "{res['content'][:120].replace(chr(10), ' ')}..."
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # The Action Button (Native Streamlit)
+                col1, col2 = st.columns([0.85, 0.15])
+                with col2:
+                    if st.button("Open File ↗", key=f"btn_{res['filename']}"):
+                        st.session_state['selected_file'] = res
+                        st.session_state['current_page'] = "file_view"
+                        st.rerun()
 
 def render_admin_page():
-    st.title("🛡️ Admin Dashboard")
+    st.markdown("<h1 style='color: #d946ef;'>🛡️ Admin Dashboard</h1>", unsafe_allow_html=True)
     if st.button("⬅️ Exit Admin Mode"):
         st.session_state['current_page'] = "search"
         st.rerun()
     
     st.markdown("---")
     
-    # Admin Tabs
+    # Admin Tabs with Icons
     t1, t2, t3, t4 = st.tabs(["📤 Uploads", "🗑️ Delete", "📊 Logs", "👥 Logins"])
     
     with t1:
         st.subheader("Add Documents")
-        uploaded = st.file_uploader("Drop files", accept_multiple_files=True)
+        uploaded = st.file_uploader("Drop text files here", accept_multiple_files=True)
         if uploaded:
             for f in uploaded:
                 with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
-            st.success("Uploaded!")
+            st.success("Uploaded successfully!")
             st.cache_resource.clear()
 
     with t2:
         st.subheader("Manage Database")
-        if st.checkbox("Show Files for Deletion"):
+        if st.checkbox("Unlock Deletion Mode"):
             for f in os.listdir(DOCS_DIR):
                 c1, c2 = st.columns([0.9, 0.1])
-                c1.text(f)
-                if c2.button("Remove", key=f"del_{f}"):
+                c1.markdown(f"**{f}**")
+                if c2.button("❌", key=f"del_{f}"):
                     os.remove(os.path.join(DOCS_DIR, f))
                     st.cache_resource.clear()
                     st.rerun()
@@ -332,7 +466,7 @@ else:
         st.markdown("""
             <div style="text-align: center;">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={}" class="profile-img">
-                <h3>{}</h3>
+                <h3 style="margin-top:0;">{}</h3>
             </div>
         """.format(st.session_state['username'], st.session_state['username']), unsafe_allow_html=True)
         
@@ -378,7 +512,7 @@ else:
                     st.rerun()
 
         st.markdown("---")
-        if st.button("Logout", use_container_width=True):
+        if st.button("🚪 Logout", use_container_width=True):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
