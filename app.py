@@ -49,13 +49,13 @@ def apply_theme():
             font-family: 'Poppins', sans-serif;
         }
         
-        /* --- 0. POP-UP ANIMATION KEYFRAMES --- */
+        /* --- 0. ANIMATIONS --- */
         @keyframes popUp {
             0% { transform: translateY(40px) scale(0.95); opacity: 0; }
             100% { transform: translateY(0) scale(1); opacity: 1; }
         }
 
-        /* --- 1. MAIN LOGIN CARD (THE FORM ITSELF) --- */
+        /* --- 1. LOGIN CARD --- */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -69,7 +69,7 @@ def apply_theme():
             animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* --- 2. REFINED INPUT FIELDS (FLOATING PILLS) --- */
+        /* --- 2. INPUT FIELDS --- */
         div[data-testid="stTextInput"] {
             background: #ffffff;
             border-radius: 50px; 
@@ -82,110 +82,99 @@ def apply_theme():
             border: 1px solid rgba(0,0,0,0.02);
             transition: all 0.3s ease;
         }
-        
-        div[data-testid="stTextInput"]:hover, div[data-testid="stTextInput"]:focus-within {
+        div[data-testid="stTextInput"]:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             border: 1px solid rgba(0,114,255,0.3);
         }
-        
         div[data-testid="stTextInput"] > div { width: 100%; display: flex; align-items: center; }
         div[data-testid="stTextInput"] > div > div > input {
             border: none; background: transparent; font-size: 1rem; color: #333; margin: 0; padding: 0;
         }
 
-        /* SPECIFIC: Search Bar Width */
+        /* Search Bar Width */
         .main div[data-testid="stTextInput"] {
             width: 40%;
             min-width: 400px;
             margin: 0 auto 30px auto;
         }
-
-        /* SPECIFIC: Sidebar Inputs */
         section[data-testid="stSidebar"] div[data-testid="stTextInput"] {
-            width: 100% !important; 
-            min-width: 0;
-            margin-bottom: 10px;
+            width: 100% !important; margin-bottom: 10px;
         }
 
-        /* --- 3. ANIMATED BUTTONS --- */
-        div.stButton > button {
-            transition: all 0.3s ease;
+        /* --- 3. RESULT CARD BUTTONS (CLICKABLE FILES) --- */
+        /* We target buttons inside the main area to look like cards */
+        .main div.stButton > button {
+            background-color: white;
+            color: #333;
             border-radius: 12px;
-            font-weight: 600;
-            border: none;
-            padding: 0.6rem 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 15px 20px; /* Smaller padding for smaller size */
             width: 100%;
-            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,114,255,0.3);
-        }
-        div.stButton > button:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(0,114,255,0.5);
+            text-align: left; /* Align text to the left */
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 8px; /* Space between cards */
+            transition: all 0.2s ease;
         }
         
-        /* --- 4. GLASS CARDS (Results) --- */
+        /* Hover Effect for Result Cards */
+        .main div.stButton > button:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 15px rgba(0,114,255,0.15);
+            border-left: 5px solid #0072ff; /* Blue accent on hover */
+            background-color: white;
+            color: #0072ff;
+        }
+        
+        /* The specific "Log In" / "Sign Up" buttons inside the form need different styling */
+        [data-testid="stForm"] div.stButton > button {
+            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+            color: white;
+            text-align: center;
+            justify-content: center;
+        }
+
+        /* --- 4. GENERAL STYLES --- */
         .glass-card {
             background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(12px);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 24px;
             margin-bottom: 20px;
             animation: popUp 0.5s ease-out forwards;
         }
-
-        /* --- 5. TABS --- */
-        .stTabs [data-baseweb="tab-list"] {
-            justify-content: center;
-            gap: 20px;
-            background: transparent;
-        }
-        .stTabs [data-baseweb="tab"] {
-            background-color: transparent;
-            border-radius: 20px;
-            padding: 5px 20px;
-            color: #555;
-        }
-        .stTabs [aria-selected="true"] {
-            background-color: rgba(255,255,255,0.8);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            color: #0072ff;
-            font-weight: bold;
-        }
         
-        /* --- 6. HIDE DEFAULT STREAMLIT FORM HINTS --- */
-        /* This hides the "Press Enter to submit" text */
-        [data-testid="InputInstructions"] {
-            display: none !important;
-        }
+        [data-testid="InputInstructions"] { display: none !important; }
         
         .profile-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+            border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # Theme Colors
     if st.session_state['theme'] == "Dark":
         st.markdown("""
             <style>
             .stApp { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); color: #ffffff; }
             section[data-testid="stSidebar"] { background-color: rgba(30, 30, 50, 0.85); border-right: 1px solid rgba(255,255,255,0.1); }
             h1, h2, h3, p { color: white !important; }
-            
-            /* Dark Mode Overrides */
             [data-testid="stForm"] { background: rgba(30, 30, 50, 0.85); border: 1px solid rgba(255,255,255,0.1); }
             div[data-testid="stTextInput"] { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
             div[data-testid="stTextInput"] > div > div > input { color: white; }
-            div[data-testid="stTextInput"]:hover { border: 1px solid rgba(218, 34, 255, 0.5); }
-            div.stButton > button { background: linear-gradient(90deg, #da22ff, #9733ee); }
+            
+            /* Dark Mode Result Cards */
+            .main div.stButton > button {
+                background-color: rgba(255,255,255,0.1);
+                color: white;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            .main div.stButton > button:hover {
+                background-color: rgba(255,255,255,0.15);
+                color: #a1c4fd;
+            }
             </style>
         """, unsafe_allow_html=True)
     else:
@@ -297,26 +286,21 @@ def load_engine():
 # ==========================================
 
 def render_login_page():
-    # Use empty columns to center the login island perfectly
     col1, col2, col3 = st.columns([1, 2, 1])
-    
     with col2:
-        # Tabs control switching between Login Form and Register Form
         tab1, tab2 = st.tabs(["Login", "Create Account"])
         
         with tab1:
-            # Styled as a single card via [data-testid="stForm"] CSS
             with st.form("login_form"):
                 st.markdown("<h2 style='text-align: center; margin: 0 0 20px 0;'>🚀 Mini Engine</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center; opacity: 0.6; margin-bottom: 20px;'>Secure Login</p>", unsafe_allow_html=True)
                 
-                user = st.text_input("Username", placeholder="Enter Username")
-                password = st.text_input("Password", type="password", placeholder="Enter Password")
+                user = st.text_input("", placeholder="Enter Username")
+                password = st.text_input("", type="password", placeholder="Enter Password")
                 
-                # Spacer
                 st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
                 
-                if st.form_submit_button("Login"):
+                if st.form_submit_button("Access System"):
                     if authenticate_user(user, password):
                         st.session_state['logged_in'] = True
                         st.session_state['username'] = user
@@ -371,8 +355,7 @@ def render_search_page():
     
     engine = load_engine()
     
-    # FLOATING ISLAND SEARCH BAR (Narrower width applied in CSS)
-    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
+    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'tech')...")
     
     if query:
         log_search(st.session_state['username'], query)
@@ -384,30 +367,15 @@ def render_search_page():
             st.warning("No documents found matching your query.")
         else:
             for res in results:
-                st.markdown(f"""
-                    <div style="
-                        background: rgba(255,255,255,0.8);
-                        border-radius: 12px;
-                        padding: 20px;
-                        margin-bottom: 15px;
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-                        border-left: 5px solid #0072ff;
-                    ">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 style="margin:0; color:#333;">📄 {res['filename']}</h3>
-                            <span style="background:#0072ff; color:white; padding:3px 10px; border-radius:20px; font-size:0.8em;">
-                                Score: {res['score']:.2f}
-                            </span>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                # --- CLICKABLE CARD BUTTON ---
+                # We use a standard st.button, but style it via CSS to look like a card
+                # The label includes the filename and the score.
+                button_label = f"📄 {res['filename']}   (Score: {res['score']:.2f})"
                 
-                col1, col2 = st.columns([0.88, 0.12])
-                with col2:
-                    if st.button("Open ↗", key=f"btn_{res['filename']}"):
-                        st.session_state['selected_file'] = res
-                        st.session_state['current_page'] = "file_view"
-                        st.rerun()
+                if st.button(button_label, key=f"btn_{res['filename']}", use_container_width=True):
+                    st.session_state['selected_file'] = res
+                    st.session_state['current_page'] = "file_view"
+                    st.rerun()
 
 def render_admin_page():
     st.markdown("<h1>🛡️ Admin Dashboard</h1>", unsafe_allow_html=True)
@@ -418,7 +386,7 @@ def render_admin_page():
     
     st.markdown("---")
     
-    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Logins"])
+    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
     
     with t1:
         st.markdown("### Upload New Documents")
@@ -440,7 +408,7 @@ def render_admin_page():
         else:
             for f in files:
                 with st.container():
-                    col_a, col_b = st.columns([0.85, 0.15])
+                    col_a, col_b = st.columns([0.8, 0.15])
                     with col_a:
                         st.text(f"📄 {f}")
                     with col_b:
@@ -490,13 +458,14 @@ else:
                 st.session_state['theme'] = new_theme
                 st.rerun()
 
-        # 2. HISTORY
+        # 2. HISTORY (Modified: Only show Query)
         with st.expander("🕒 Search History"):
             if os.path.exists(LOG_FILE):
                 df = pd.read_csv(LOG_FILE)
                 my_logs = df[df['User'] == st.session_state['username']]
                 if not my_logs.empty:
-                    st.dataframe(my_logs[['Timestamp', 'Query']], hide_index=True)
+                    # ONLY SHOW QUERY COLUMN
+                    st.dataframe(my_logs[['Query']], hide_index=True)
                 else:
                     st.info("No history")
             else:
