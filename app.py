@@ -53,7 +53,7 @@ def apply_theme():
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
-            border-radius: 20px;
+            border-radius: 30px;
             padding: 30px; /* Reduced from 30px */
             box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.8);
@@ -335,7 +335,7 @@ def render_search_page():
     engine = load_engine()
     
     # FLOATING ISLAND SEARCH BAR
-    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
+    query = st.text_input("", placeholder="Search anything (e.g. 'Finance', 'Tech')...")
     
     if query:
         log_search(st.session_state['username'], query)
