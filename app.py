@@ -38,7 +38,7 @@ for key, val in state_defaults.items():
         st.session_state[key] = val
 
 # ==========================================
-# 2. UI STYLING (RESIZED FLOATING ISLANDS)
+# 2. UI STYLING (ADJUSTED HEIGHT & ALIGNMENT)
 # ==========================================
 def apply_theme():
     st.markdown("""
@@ -49,40 +49,51 @@ def apply_theme():
             font-family: 'Poppins', sans-serif;
         }
         
-        /* --- 1. FLOATING ISLAND (LOGIN) - COMPACT SIZE --- */
+        /* --- 1. FLOATING ISLAND (LOGIN) - REDUCED HEIGHT --- */
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
             border-radius: 20px;
-            padding: 30px; /* Reduced padding */
+            padding: 25px; /* Reduced from 30px */
             box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.8);
             margin: 40px auto;
             text-align: center;
-            max-width: 450px; /* Fixed width prevents it from being too big */
+            max-width: 450px; 
         }
 
-        /* --- 2. FLOATING ISLAND (SEARCH BAR) - SLEEK SIZE --- */
+        /* --- 2. FLOATING ISLAND (SEARCH BAR) - CENTERED & COMPACT --- */
         div[data-testid="stTextInput"] {
             background: white;
             border-radius: 50px;
-            padding: 2px 15px;
+            /* Flexbox to center the input vertically */
+            display: flex; 
+            align-items: center; 
+            height: 50px; /* Fixed sleek height */
+            padding: 0px 20px; /* Horizontal padding only */
+            
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
             border: 1px solid rgba(0,0,0,0.05);
             transition: all 0.3s ease;
-            width: 60%; /* Reduced from 80% to 60% */
-            max-width: 700px; /* Cap the max width */
-            margin: 0 auto 25px auto; /* Centered */
+            width: 60%;
+            max-width: 700px;
+            margin: 0 auto 25px auto;
         }
         div[data-testid="stTextInput"]:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+        
+        /* Inner Input Styling */
+        div[data-testid="stTextInput"] > div {
+            width: 100%; /* Ensure input takes full width of container */
         }
         div[data-testid="stTextInput"] > div > div > input {
             border: none;
             background: transparent;
             font-size: 1.1rem;
             color: #333;
+            margin-top: 5px; /* Micro adjustment for visual center */
         }
 
         /* --- 3. ANIMATED BUTTONS --- */
@@ -316,7 +327,7 @@ def render_search_page():
     # Welcome Header
     st.markdown(f"""
         <div class="glass-card" style="margin-bottom: 40px; text-align: center;">
-            <h1 style="margin:0;">🔎 Knowledge Hub</h1>
+            <h1 style="margin:0;">🔎 Knowledge Base</h1>
             <p style="margin:0; opacity:0.8;">Welcome, <b>{st.session_state['username']}</b></p>
         </div>
     """, unsafe_allow_html=True)
@@ -336,6 +347,7 @@ def render_search_page():
             st.warning("No documents found matching your query.")
         else:
             for res in results:
+                # REMOVED CONTENT SNIPPET HERE, ONLY SHOWING FILE NAME AND SCORE
                 st.markdown(f"""
                     <div style="
                         background: rgba(255,255,255,0.8);
@@ -351,9 +363,6 @@ def render_search_page():
                                 Score: {res['score']:.2f}
                             </span>
                         </div>
-                        <p style="color:#666; font-style:italic; margin-top:10px;">
-                            "{res['content'][:150].replace(chr(10), ' ')}..."
-                        </p>
                     </div>
                 """, unsafe_allow_html=True)
                 
@@ -376,7 +385,8 @@ def render_admin_page():
     t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
     
     with t1:
-        st.markdown("### Upload New Documents")
+        # Stacked Layout: Upload First, then Files below
+        st.markdown("### 📤 Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
         if uploaded:
             for f in uploaded:
@@ -387,7 +397,7 @@ def render_admin_page():
             
         st.divider()
         
-        st.markdown("### Existing Files")
+        st.markdown("### 🗑️ Manage Existing Files")
         files = os.listdir(DOCS_DIR)
         
         if not files:
@@ -395,7 +405,7 @@ def render_admin_page():
         else:
             for f in files:
                 with st.container():
-                    col_a, col_b = st.columns([0.8, 0.15])
+                    col_a, col_b = st.columns([0.85, 0.15])
                     with col_a:
                         st.text(f"📄 {f}")
                     with col_b:
@@ -479,7 +489,7 @@ else:
                     st.rerun()
 
         st.markdown("---")
-        if st.button("Logout", use_container_width=True):
+        if st.button("🚪 Logout", use_container_width=True):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
