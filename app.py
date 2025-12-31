@@ -55,30 +55,27 @@ def apply_theme():
             100% { transform: translateY(0) scale(1); opacity: 1; }
         }
         
-        /* --- 1. FLOATING ISLAND (LOGIN) - TALLER & ANIMATED --- */
+        /* --- 1. FLOATING ISLAND (LOGIN) --- */
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
             border-radius: 25px;
-            padding: 40px; /* Increased padding for height */
+            padding: 40px; 
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.8);
             margin: 40px auto;
             text-align: center;
-            max-width: 500px; /* Wider */
-            
-            /* Apply the Pop-Up Animation */
+            max-width: 500px; 
             animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
         /* --- 2. FLOATING INPUTS (Search Bar & Admin Key) --- */
-        /* Global Style for Floating Inputs */
         div[data-testid="stTextInput"] {
             background: white;
             border-radius: 15px;
             display: flex; 
-            align-items: center; 
-            height: 55px; /* Increased Height */
+            align-items: center; /* Vertically center content */
+            height: 55px; 
             padding: 0px 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             border: 1px solid rgba(0,0,0,0.05);
@@ -88,21 +85,34 @@ def apply_theme():
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.12);
         }
-        div[data-testid="stTextInput"] > div { width: 100%; }
+        
+        div[data-testid="stTextInput"] > div { 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+        }
+        
+        /* --- INPUT TEXT ALIGNMENT FIX --- */
         div[data-testid="stTextInput"] > div > div > input {
-            border: none; background: transparent; font-size: 1.1rem; color: #333; margin-top: 5px;
+            border: none; 
+            background: transparent; 
+            font-size: 1.1rem; 
+            color: #333; 
+            margin: 0;      /* Removed margin-top to allow true centering */
+            padding: 0;     /* Reset padding */
+            line-height: normal;
         }
 
-        /* SPECIFIC: Search Bar (In Main Area) gets distinct width */
+        /* SPECIFIC: Search Bar Width */
         .main div[data-testid="stTextInput"] {
             width: 70%;
             max-width: 800px;
             margin: 0 auto 25px auto;
         }
 
-        /* SPECIFIC: Sidebar Inputs (Admin Key) get full width */
+        /* SPECIFIC: Sidebar Inputs Width */
         section[data-testid="stSidebar"] div[data-testid="stTextInput"] {
-            width: 100% !important; /* Full length of sidebar */
+            width: 100% !important; 
             margin-bottom: 10px;
         }
 
@@ -128,7 +138,7 @@ def apply_theme():
             border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 24px;
             margin-bottom: 20px;
-            animation: popUp 0.5s ease-out forwards; /* Also animate results */
+            animation: popUp 0.5s ease-out forwards;
         }
 
         /* --- 5. SETTINGS DROPDOWNS --- */
@@ -358,7 +368,7 @@ def render_search_page():
             st.warning("No documents found matching your query.")
         else:
             for res in results:
-                # ONLY SHOW FILE NAME AND SCORE (No Snippet)
+                # UPDATED: NO CONTENT SNIPPET SHOWN HERE
                 st.markdown(f"""
                     <div style="
                         background: rgba(255,255,255,0.8);
