@@ -30,7 +30,7 @@ state_defaults = {
     'admin_unlocked': False,
     'current_page': "search",
     'selected_file': None,
-    'last_logged_query': None # NEW: To prevent duplicate logs
+    'last_logged_query': None
 }
 
 for key, val in state_defaults.items():
@@ -38,7 +38,7 @@ for key, val in state_defaults.items():
         st.session_state[key] = val
 
 # ==========================================
-# 2. UI STYLING (FLOATING ISLANDS)
+# 2. UI STYLING (RESIZED FLOATING ISLANDS)
 # ==========================================
 def apply_theme():
     st.markdown("""
@@ -49,53 +49,53 @@ def apply_theme():
             font-family: 'Poppins', sans-serif;
         }
         
-        /* --- 1. FLOATING ISLAND (LOGIN) --- */
+        /* --- 1. FLOATING ISLAND (LOGIN) - COMPACT SIZE --- */
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
-            border-radius: 30px;
-            padding: 50px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 20px;
+            padding: 30px; /* Reduced padding */
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.8);
-            margin: 60px auto;
+            margin: 40px auto;
             text-align: center;
+            max-width: 450px; /* Fixed width prevents it from being too big */
         }
 
-        /* --- 2. FLOATING ISLAND (SEARCH BAR) --- */
-        /* Target the specific Streamlit text input container */
+        /* --- 2. FLOATING ISLAND (SEARCH BAR) - SLEEK SIZE --- */
         div[data-testid="stTextInput"] {
             background: white;
             border-radius: 50px;
-            padding: 5px 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 2px 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
             border: 1px solid rgba(0,0,0,0.05);
             transition: all 0.3s ease;
-            width: 80%;
-            margin: 0 auto 30px auto; /* Center it */
+            width: 60%; /* Reduced from 80% to 60% */
+            max-width: 700px; /* Cap the max width */
+            margin: 0 auto 25px auto; /* Centered */
         }
         div[data-testid="stTextInput"]:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
         }
-        /* Remove default border of the input inside */
         div[data-testid="stTextInput"] > div > div > input {
             border: none;
             background: transparent;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #333;
         }
 
         /* --- 3. ANIMATED BUTTONS --- */
         div.stButton > button {
             transition: all 0.3s ease;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 600;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 1rem;
         }
         div.stButton > button:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
             z-index: 99;
         }
         
@@ -119,11 +119,11 @@ def apply_theme():
         }
         
         .profile-img {
-            width: 90px;
-            height: 90px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid white;
+            border: 3px solid white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         </style>
@@ -137,10 +137,11 @@ def apply_theme():
             section[data-testid="stSidebar"] { background-color: rgba(30, 30, 50, 0.85); border-right: 1px solid rgba(255,255,255,0.1); }
             div.stButton > button { background: linear-gradient(90deg, #da22ff, #9733ee); color: white; }
             h1, h2, h3, p { color: white !important; }
-            /* Dark Mode Overrides for Search Island */
-            div[data-testid="stTextInput"] { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); }
+            
+            /* Dark Mode Overrides */
+            div[data-testid="stTextInput"] { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); }
             div[data-testid="stTextInput"] > div > div > input { color: white; }
-            .floating-island-form { background: rgba(30, 30, 50, 0.8); border: 1px solid rgba(255,255,255,0.1); }
+            .floating-island-form { background: rgba(30, 30, 50, 0.85); border: 1px solid rgba(255,255,255,0.1); }
             </style>
         """, unsafe_allow_html=True)
     else:
@@ -179,7 +180,6 @@ def authenticate_user(username, password):
     df = pd.read_csv(USER_DB_FILE)
     user_row = df[(df['username'] == username) & (df['password'] == password)]
     
-    # Log Activity
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if not os.path.exists(LOGIN_ACTIVITY_FILE):
         with open(LOGIN_ACTIVITY_FILE, "w") as f: f.write("Timestamp,User,Status\n")
@@ -192,8 +192,6 @@ def authenticate_user(username, password):
         return False
 
 def log_search(username, query):
-    # --- FIX FOR DUPLICATE LOGS ---
-    # Only log if the query is different from the last one in this session
     if st.session_state['last_logged_query'] == query:
         return
 
@@ -202,8 +200,6 @@ def log_search(username, query):
         with open(LOG_FILE, "w") as f: f.write("Timestamp,User,Query\n")
     
     with open(LOG_FILE, "a") as f: f.write(f"{timestamp},{username},{query}\n")
-    
-    # Update session state to remember we logged this
     st.session_state['last_logged_query'] = query
 
 class SearchEngine:
@@ -258,23 +254,19 @@ def load_engine():
 # ==========================================
 
 def render_login_page():
-    # Floating Island Layout
+    # Use empty columns to center the login island perfectly
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
         st.markdown("""
             <div class="floating-island-form">
                 <h1 style="color: #0072ff; font-weight: 800; margin-bottom: 5px;">🚀 Mini Engine</h1>
-                <p style="color: #555; font-size: 1.1em;">Secure Document Intelligence</p>
+                <p style="color: #555; font-size: 1.0em;">Secure Document Intelligence</p>
                 <hr style="opacity: 0.2; margin: 20px 0;">
             </div>
         """, unsafe_allow_html=True)
         
-        # Tabs container (Login/Register)
-        # We put tabs *outside* the island div in markdown, but *inside* the column
-        # To make it look like part of the island, we style the tabs in CSS or simple layout
-        
-        tab1, tab2 = st.tabs(["Login", "Create Account"])
+        tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
         
         with tab1:
             with st.form("login_form"):
@@ -331,8 +323,7 @@ def render_search_page():
     
     engine = load_engine()
     
-    # --- FLOATING ISLAND SEARCH BAR ---
-    # The CSS defined earlier will target this text_input automatically
+    # FLOATING ISLAND SEARCH BAR
     query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
     
     if query:
@@ -382,10 +373,9 @@ def render_admin_page():
     
     st.markdown("---")
     
-    t1, t2, t3 = st.tabs(["📂 Files", "📊 User Searches", "👥 Logins"])
+    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
     
     with t1:
-        # Stacked Layout: Upload First, then Files below
         st.markdown("### Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
         if uploaded:
