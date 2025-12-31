@@ -71,15 +71,13 @@ def apply_theme():
 
         /* --- 2. REFINED INPUT FIELDS (FLOATING PILLS) --- */
         div[data-testid="stTextInput"] {
-            background: #ffffff; /* Pure white */
-            border-radius: 50px; /* Pill shape */
+            background: #ffffff;
+            border-radius: 50px; 
             display: flex; 
             align-items: center; 
             height: 50px; 
             padding: 0px 20px;
-            margin-bottom: 15px; /* Spacing between inputs */
-            
-            /* The "Floating" Look */
+            margin-bottom: 15px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
             border: 1px solid rgba(0,0,0,0.02);
             transition: all 0.3s ease;
@@ -88,7 +86,7 @@ def apply_theme():
         div[data-testid="stTextInput"]:hover, div[data-testid="stTextInput"]:focus-within {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,114,255,0.3); /* Subtle blue glow */
+            border: 1px solid rgba(0,114,255,0.3);
         }
         
         div[data-testid="stTextInput"] > div { width: 100%; display: flex; align-items: center; }
@@ -96,14 +94,14 @@ def apply_theme():
             border: none; background: transparent; font-size: 1rem; color: #333; margin: 0; padding: 0;
         }
 
-        /* SPECIFIC: Search Bar Width (NARROWER) */
+        /* SPECIFIC: Search Bar Width */
         .main div[data-testid="stTextInput"] {
-            width: 40%; /* Reduced to 40% */
+            width: 40%;
             min-width: 400px;
             margin: 0 auto 30px auto;
         }
 
-        /* SPECIFIC: Sidebar Inputs (Admin Key) */
+        /* SPECIFIC: Sidebar Inputs */
         section[data-testid="stSidebar"] div[data-testid="stTextInput"] {
             width: 100% !important; 
             min-width: 0;
@@ -117,7 +115,7 @@ def apply_theme():
             font-weight: 600;
             border: none;
             padding: 0.6rem 1.5rem;
-            width: 100%; /* Full width buttons in form */
+            width: 100%;
             background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
             color: white;
             box-shadow: 0 4px 15px rgba(0,114,255,0.3);
@@ -155,6 +153,12 @@ def apply_theme():
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             color: #0072ff;
             font-weight: bold;
+        }
+        
+        /* --- 6. HIDE DEFAULT STREAMLIT FORM HINTS --- */
+        /* This hides the "Press Enter to submit" text */
+        [data-testid="InputInstructions"] {
+            display: none !important;
         }
         
         .profile-img {
@@ -298,7 +302,7 @@ def render_login_page():
     
     with col2:
         # Tabs control switching between Login Form and Register Form
-        tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
+        tab1, tab2 = st.tabs(["Login", "Create Account"])
         
         with tab1:
             # Styled as a single card via [data-testid="stForm"] CSS
@@ -312,7 +316,7 @@ def render_login_page():
                 # Spacer
                 st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
                 
-                if st.form_submit_button("Access System"):
+                if st.form_submit_button("Login"):
                     if authenticate_user(user, password):
                         st.session_state['logged_in'] = True
                         st.session_state['username'] = user
@@ -360,7 +364,7 @@ def render_search_page():
     # Welcome Header
     st.markdown(f"""
         <div class="glass-card" style="margin-bottom: 40px; text-align: center;">
-            <h1 style="margin:0;">🔎 Knowledge Base</h1>
+            <h1 style="margin:0;">🔎 Knowledge Hub</h1>
             <p style="margin:0; opacity:0.8;">Welcome, <b>{st.session_state['username']}</b></p>
         </div>
     """, unsafe_allow_html=True)
@@ -414,10 +418,10 @@ def render_admin_page():
     
     st.markdown("---")
     
-    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
+    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Logins"])
     
     with t1:
-        st.markdown("### 📤 Upload New Documents")
+        st.markdown("### Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
         if uploaded:
             for f in uploaded:
@@ -428,7 +432,7 @@ def render_admin_page():
             
         st.divider()
         
-        st.markdown("### 🗑️ Manage Existing Files")
+        st.markdown("### Existing Files")
         files = os.listdir(DOCS_DIR)
         
         if not files:
@@ -520,7 +524,7 @@ else:
                     st.rerun()
 
         st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
