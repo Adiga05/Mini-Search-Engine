@@ -25,8 +25,7 @@ if not os.path.exists(DOCS_DIR):
 # Initialize Session State
 state_defaults = {
     'logged_in': False,
-    'user_email': "", # Changed from username to email for tracking
-    'user_name': "",
+    'username': "",
     'theme': "Light",
     'admin_unlocked': False,
     'current_page': "search",
@@ -64,11 +63,23 @@ def apply_theme():
             z-index: 99;
         }
         
-        /* 2. GLASSMORPHISM CARD STYLE */
+        /* 2. FLOATING ISLAND LOGIN CARD */
+        .floating-island {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.6);
+            margin: 50px auto; /* Centers it vertically/horizontally in column */
+            text-align: center;
+        }
+
+        /* 3. GLASS CARDS (General) */
         .glass-card {
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 24px;
@@ -76,7 +87,7 @@ def apply_theme():
             margin-bottom: 20px;
         }
 
-        /* 3. SETTINGS DROPDOWNS */
+        /* 4. SETTINGS DROPDOWNS */
         div[data-testid="stExpander"] {
             background-color: rgba(255, 255, 255, 0.4);
             border-radius: 10px;
@@ -85,7 +96,7 @@ def apply_theme():
             margin-bottom: 10px;
         }
         
-        /* 4. PROFILE IMAGE */
+        /* 5. PROFILE IMAGE */
         .profile-img {
             width: 90px;
             height: 90px;
@@ -150,52 +161,51 @@ def apply_theme():
 # ==========================================
 
 def init_dbs():
-    # Added 'email' column
+    # REMOVED email column, reverted to username
     if not os.path.exists(USER_DB_FILE):
-        df = pd.DataFrame(columns=["email", "username", "password", "created_at"])
+        df = pd.DataFrame(columns=["username", "password", "created_at"])
         # Default Admin Account
-        df.loc[0] = ["admin@company.com", "Admin", "admin123", datetime.now().strftime("%Y-%m-%d")]
+        df.loc[0] = ["Admin", "admin123", datetime.now().strftime("%Y-%m-%d")]
         df.to_csv(USER_DB_FILE, index=False)
 
-def log_login_activity(email, status="Success"):
+def log_login_activity(username, status="Success"):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if not os.path.exists(LOGIN_ACTIVITY_FILE):
-        with open(LOGIN_ACTIVITY_FILE, "w") as f: f.write("Timestamp,Email,Status\n")
-    with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{timestamp},{email},{status}\n")
+        with open(LOGIN_ACTIVITY_FILE, "w") as f: f.write("Timestamp,User,Status\n")
+    with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{timestamp},{username},{status}\n")
 
-def register_user(email, username, password):
+def register_user(username, password):
     init_dbs()
     df = pd.read_csv(USER_DB_FILE)
     
-    # Check if email exists
-    if email in df['email'].values:
-        return False, "Email already registered."
+    # Check if username exists
+    if username in df['username'].values:
+        return False, "Username already taken."
     
-    new_user = pd.DataFrame([[email, username, password, datetime.now().strftime("%Y-%m-%d")]], 
-                            columns=["email", "username", "password", "created_at"])
+    new_user = pd.DataFrame([[username, password, datetime.now().strftime("%Y-%m-%d")]], 
+                            columns=["username", "password", "created_at"])
     df = pd.concat([df, new_user], ignore_index=True)
     df.to_csv(USER_DB_FILE, index=False)
     return True, "Account created! Please log in."
 
-def authenticate_user(email, password):
+def authenticate_user(username, password):
     init_dbs()
     df = pd.read_csv(USER_DB_FILE)
-    # Match Email and Password
-    user_row = df[(df['email'] == email) & (df['password'] == password)]
+    # Match Username and Password
+    user_row = df[(df['username'] == username) & (df['password'] == password)]
     
     if not user_row.empty:
-        log_login_activity(email, "Success")
-        # Return the username for display purposes
-        return True, user_row.iloc[0]['username']
+        log_login_activity(username, "Success")
+        return True
     else:
-        log_login_activity(email, "Failed")
-        return False, None
+        log_login_activity(username, "Failed")
+        return False
 
-def log_search(email, query):
+def log_search(username, query):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if not os.path.exists(LOG_FILE):
-        with open(LOG_FILE, "w") as f: f.write("Timestamp,Email,Query\n")
-    with open(LOG_FILE, "a") as f: f.write(f"{timestamp},{email},{query}\n")
+        with open(LOG_FILE, "w") as f: f.write("Timestamp,User,Query\n")
+    with open(LOG_FILE, "a") as f: f.write(f"{timestamp},{username},{query}\n")
 
 class SearchEngine:
     def __init__(self):
@@ -249,54 +259,42 @@ def load_engine():
 # ==========================================
 
 def render_login_page():
-    # Centered Glass Card
-    st.markdown("""
-        <div style="
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(15px);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 500px;
-            margin: 60px auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            border: 1px solid rgba(255,255,255,0.4);
-        ">
-            <h1 style="color: #0072ff; font-weight: 800; margin-bottom: 5px;">🚀 Mini Engine</h1>
-            <p style="color: #555; font-size: 1.1em;">Secure Document Intelligence</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
+    # Floating Island CSS applied via markdown
     col1, col2, col3 = st.columns([1, 2, 1])
+    
     with col2:
-        tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
+        st.markdown("""
+            <div class="floating-island">
+                <h1 style="color: #0072ff; font-weight: 800; margin-bottom: 5px;">🚀 Mini Engine</h1>
+                <p style="color: #555; font-size: 1.1em;">Secure Document Intelligence</p>
+                <hr style="opacity: 0.2; margin: 20px 0;">
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Tabs for Login/Register inside the island context
+        tab1, tab2 = st.tabs(["Login", "Create Account"])
         
         with tab1:
             with st.form("login_form"):
-                st.markdown("### Welcome Back")
-                email = st.text_input("Email Address")
+                user = st.text_input("Username")
                 password = st.text_input("Password", type="password")
                 
                 if st.form_submit_button("Log In", use_container_width=True):
-                    is_valid, username = authenticate_user(email, password)
-                    if is_valid:
+                    if authenticate_user(user, password):
                         st.session_state['logged_in'] = True
-                        st.session_state['user_email'] = email
-                        st.session_state['user_name'] = username
+                        st.session_state['username'] = user
                         st.rerun()
                     else:
-                        st.error("Invalid Email or Password")
+                        st.error("Invalid Username or Password")
         
         with tab2:
             with st.form("register_form"):
-                st.markdown("### New User")
-                new_email = st.text_input("Email Address")
-                new_user = st.text_input("Full Name")
+                new_user = st.text_input("Choose Username")
                 new_pass = st.text_input("Create Password", type="password")
                 
                 if st.form_submit_button("Sign Up", use_container_width=True):
-                    if new_email and new_user and new_pass:
-                        success, msg = register_user(new_email, new_user, new_pass)
+                    if new_user and new_pass:
+                        success, msg = register_user(new_user, new_pass)
                         if success: st.success(msg)
                         else: st.error(msg)
                     else:
@@ -324,8 +322,8 @@ def render_search_page():
     # Welcome Header
     st.markdown(f"""
         <div class="glass-card" style="margin-bottom: 30px;">
-            <h1 style="margin:0;">🔎 Knowledge Base</h1>
-            <p style="margin:0; opacity:0.8;">Logged in as: <b>{st.session_state['user_name']}</b> ({st.session_state['user_email']})</p>
+            <h1 style="margin:0;">🔎 Knowledge Hub</h1>
+            <p style="margin:0; opacity:0.8;">Logged in as: <b>{st.session_state['username']}</b></p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -333,7 +331,7 @@ def render_search_page():
     query = st.text_input("", placeholder="Type keywords (e.g., 'contract', 'finance')...")
     
     if query:
-        log_search(st.session_state['user_email'], query)
+        log_search(st.session_state['username'], query)
         results = engine.search(query)
         
         st.markdown(f"### Found {len(results)} matches")
@@ -381,32 +379,39 @@ def render_admin_page():
     
     st.markdown("---")
     
-    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
+    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Logins"])
     
     with t1:
-        st.info("Upload new text files or delete old ones.")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("### 📤 Upload")
-            uploaded = st.file_uploader("Drag files here", accept_multiple_files=True)
-            if uploaded:
-                for f in uploaded:
-                    with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
-                st.success("Files Uploaded!")
-                st.cache_resource.clear()
-                st.rerun()
-        with c2:
-            st.markdown("### 🗑️ Delete")
-            files = os.listdir(DOCS_DIR)
-            if not files: st.caption("Empty Database")
-            else:
-                for f in files:
-                    col_a, col_b = st.columns([0.8, 0.2])
-                    col_a.text(f)
-                    if col_b.button("❌", key=f"del_{f}"):
-                        os.remove(os.path.join(DOCS_DIR, f))
-                        st.cache_resource.clear()
-                        st.rerun()
+        # Changed Layout: Upload first, then files below it (Stacked)
+        st.markdown("### Upload New Documents")
+        uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
+        if uploaded:
+            for f in uploaded:
+                with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
+            st.success("Files Uploaded Successfully!")
+            st.cache_resource.clear()
+            st.rerun()
+            
+        st.divider()
+        
+        st.markdown("### Existing Files")
+        files = os.listdir(DOCS_DIR)
+        
+        if not files:
+            st.info("Database is empty.")
+        else:
+            for f in files:
+                # Use a clean container for each file row
+                with st.container():
+                    col_a, col_b = st.columns([0.85, 0.15])
+                    with col_a:
+                        st.text(f"📄 {f}")
+                    with col_b:
+                        if st.button("Remove", key=f"del_{f}"):
+                            os.remove(os.path.join(DOCS_DIR, f))
+                            st.cache_resource.clear()
+                            st.rerun()
+                    st.divider()
 
     with t2:
         if os.path.exists(LOG_FILE):
@@ -433,9 +438,8 @@ else:
         # Profile Picture & Name
         st.markdown(f"""
             <div style="text-align:center; margin-bottom: 20px;">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={st.session_state['user_name']}" class="profile-img">
-                <h3 style="margin: 10px 0 0 0;">{st.session_state['user_name']}</h3>
-                <p style="font-size: 0.8em; opacity: 0.7;">{st.session_state['user_email']}</p>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={st.session_state['username']}" class="profile-img">
+                <h3 style="margin: 10px 0 0 0;">{st.session_state['username']}</h3>
             </div>
         """, unsafe_allow_html=True)
         
@@ -455,8 +459,8 @@ else:
         with st.expander("🕒 Search History"):
             if os.path.exists(LOG_FILE):
                 df = pd.read_csv(LOG_FILE)
-                # Filter by logged-in email
-                my_logs = df[df['Email'] == st.session_state['user_email']]
+                # Filter by logged-in username
+                my_logs = df[df['User'] == st.session_state['username']]
                 
                 if not my_logs.empty:
                     st.dataframe(my_logs[['Timestamp', 'Query']], hide_index=True)
@@ -487,7 +491,7 @@ else:
                     st.rerun()
 
         st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
