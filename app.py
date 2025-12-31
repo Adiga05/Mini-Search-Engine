@@ -38,7 +38,7 @@ for key, val in state_defaults.items():
         st.session_state[key] = val
 
 # ==========================================
-# 2. UI STYLING (ANIMATED & RESIZED)
+# 2. UI STYLING
 # ==========================================
 def apply_theme():
     st.markdown("""
@@ -55,26 +55,39 @@ def apply_theme():
             100% { transform: translateY(0) scale(1); opacity: 1; }
         }
         
-        /* --- 1. FLOATING ISLAND (LOGIN) --- */
+        /* --- 1. FLOATING ISLAND (LOGIN HEADER) - SMALLER WIDTH --- */
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
-            border-radius: 25px;
-            padding: 40px; 
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 20px; 
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.8);
-            margin: 40px auto;
+            margin: 20px auto;
             text-align: center;
-            max-width: 500px; 
+            max-width: 380px; /* Reduced Length */
             animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* --- 2. FLOATING INPUTS (Search Bar & Admin Key) --- */
+        /* --- 2. MAKE THE LOGIN FORM (INPUTS) FLOAT & POP UP --- */
+        [data-testid="stForm"] {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            max-width: 380px; /* Match Header Width */
+            margin: 0 auto; /* Center it */
+            animation: popUp 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* --- 3. FLOATING INPUTS (Search Bar & Admin Key) --- */
         div[data-testid="stTextInput"] {
             background: white;
             border-radius: 15px;
             display: flex; 
-            align-items: center; /* Vertically center content */
+            align-items: center; 
             height: 55px; 
             padding: 0px 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
@@ -85,22 +98,9 @@ def apply_theme():
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.12);
         }
-        
-        div[data-testid="stTextInput"] > div { 
-            width: 100%; 
-            display: flex; 
-            align-items: center; 
-        }
-        
-        /* --- INPUT TEXT ALIGNMENT FIX --- */
+        div[data-testid="stTextInput"] > div { width: 100%; display: flex; align-items: center; }
         div[data-testid="stTextInput"] > div > div > input {
-            border: none; 
-            background: transparent; 
-            font-size: 1.1rem; 
-            color: #333; 
-            margin: 0;      /* Removed margin-top to allow true centering */
-            padding: 0;     /* Reset padding */
-            line-height: normal;
+            border: none; background: transparent; font-size: 1.1rem; color: #333; margin: 0; padding: 0; line-height: normal;
         }
 
         /* SPECIFIC: Search Bar Width */
@@ -116,7 +116,7 @@ def apply_theme():
             margin-bottom: 10px;
         }
 
-        /* --- 3. ANIMATED BUTTONS --- */
+        /* --- 4. ANIMATED BUTTONS --- */
         div.stButton > button {
             transition: all 0.3s ease;
             border-radius: 12px;
@@ -130,7 +130,7 @@ def apply_theme():
             z-index: 99;
         }
         
-        /* --- 4. GLASS CARDS --- */
+        /* --- 5. GLASS CARDS --- */
         .glass-card {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(12px);
@@ -141,7 +141,7 @@ def apply_theme():
             animation: popUp 0.5s ease-out forwards;
         }
 
-        /* --- 5. SETTINGS DROPDOWNS --- */
+        /* --- 6. SETTINGS DROPDOWNS --- */
         div[data-testid="stExpander"] {
             background-color: rgba(255, 255, 255, 0.5);
             border-radius: 10px;
@@ -174,6 +174,7 @@ def apply_theme():
             div[data-testid="stTextInput"] { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); }
             div[data-testid="stTextInput"] > div > div > input { color: white; }
             .floating-island-form { background: rgba(30, 30, 50, 0.85); border: 1px solid rgba(255,255,255,0.1); }
+            [data-testid="stForm"] { background: rgba(30, 30, 50, 0.85); border: 1px solid rgba(255,255,255,0.1); }
             </style>
         """, unsafe_allow_html=True)
     else:
@@ -294,13 +295,15 @@ def render_login_page():
             <div class="floating-island-form">
                 <h1 style="color: #0072ff; font-weight: 800; margin-bottom: 5px;">🚀 Mini Engine</h1>
                 <p style="color: #555; font-size: 1.0em;">Secure Document Intelligence</p>
-                <hr style="opacity: 0.2; margin: 20px 0;">
+                <hr style="opacity: 0.2; margin: 10px 0;">
             </div>
         """, unsafe_allow_html=True)
         
+        # Tabs for Login/Register
         tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
         
         with tab1:
+            # The CSS above ([data-testid="stForm"]) makes this form float and pop up
             with st.form("login_form"):
                 user = st.text_input("Username")
                 password = st.text_input("Password", type="password")
@@ -368,7 +371,6 @@ def render_search_page():
             st.warning("No documents found matching your query.")
         else:
             for res in results:
-                # UPDATED: NO CONTENT SNIPPET SHOWN HERE
                 st.markdown(f"""
                     <div style="
                         background: rgba(255,255,255,0.8);
