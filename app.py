@@ -55,7 +55,7 @@ def apply_theme():
             100% { transform: translateY(0) scale(1); opacity: 1; }
         }
         
-        /* --- 1. FLOATING ISLAND (LOGIN HEADER) - SMALLER WIDTH --- */
+        /* --- 1. FLOATING ISLAND (LOGIN HEADER) - WIDER --- */
         .floating-island-form {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(25px);
@@ -65,11 +65,11 @@ def apply_theme():
             border: 1px solid rgba(255,255,255,0.8);
             margin: 20px auto;
             text-align: center;
-            max-width: 380px; /* Reduced Length */
+            max-width: 450px; /* Increased Width */
             animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* --- 2. MAKE THE LOGIN FORM (INPUTS) FLOAT & POP UP --- */
+        /* --- 2. LOGIN FORM BODY - WIDER & POP UP --- */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
@@ -77,8 +77,8 @@ def apply_theme():
             padding: 30px;
             border: 1px solid rgba(255,255,255,0.5);
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            max-width: 380px; /* Match Header Width */
-            margin: 0 auto; /* Center it */
+            max-width: 450px; /* Increased Width to match header */
+            margin: 0 auto;
             animation: popUp 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
@@ -103,10 +103,10 @@ def apply_theme():
             border: none; background: transparent; font-size: 1.1rem; color: #333; margin: 0; padding: 0; line-height: normal;
         }
 
-        /* SPECIFIC: Search Bar Width */
+        /* SPECIFIC: Search Bar Width - NARROWER */
         .main div[data-testid="stTextInput"] {
-            width: 70%;
-            max-width: 800px;
+            width: 50%; /* Reduced from 70% to 50% */
+            max-width: 600px;
             margin: 0 auto 25px auto;
         }
 
@@ -303,7 +303,6 @@ def render_login_page():
         tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
         
         with tab1:
-            # The CSS above ([data-testid="stForm"]) makes this form float and pop up
             with st.form("login_form"):
                 user = st.text_input("Username")
                 password = st.text_input("Password", type="password")
