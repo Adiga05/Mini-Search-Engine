@@ -40,9 +40,9 @@ for key, val in state_keys.items():
 # 2. ADVANCED STYLING (CSS)
 # ==========================================
 def apply_theme():
-    """Injects Advanced CSS with Gradients and Glassmorphism."""
+    """Injects Advanced CSS with Hover Effects."""
     
-    # Common CSS for Fonts and Transitions
+    # Common CSS for Fonts and Button Animations
     base_css = """
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -50,22 +50,16 @@ def apply_theme():
             font-family: 'Poppins', sans-serif;
         }
         
-        /* Smooth transitions */
-        .stButton > button, div[data-testid="stExpander"], input {
-            transition: all 0.3s ease-in-out;
+        /* --- BUTTON POP-UP EFFECT --- */
+        .stButton > button {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .stButton > button:hover {
+            transform: scale(1.05) translateY(-3px); /* Pop up effect */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* Shadow depth */
+            z-index: 100;
         }
 
-        /* Card Styling for Search Results */
-        .result-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
         /* Profile Image */
         .profile-img {
             width: 90px;
@@ -83,27 +77,20 @@ def apply_theme():
         st.markdown(f"""
             {base_css}
             <style>
-            /* Dark Mode Gradient */
             .stApp {{
                 background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
                 color: #ffffff;
             }}
-            
-            /* Sidebar Dark */
             section[data-testid="stSidebar"] {{
                 background-color: rgba(15, 32, 39, 0.95);
                 border-right: 1px solid #2c5364;
             }}
-
-            /* Inputs Dark */
             .stTextInput > div > div > input {{
                 background-color: rgba(255, 255, 255, 0.1);
                 color: white;
                 border: 1px solid #2c5364;
                 border-radius: 10px;
             }}
-            
-            /* Buttons Dark */
             .stButton > button {{
                 background: linear-gradient(90deg, #8E2DE2, #4A00E0);
                 color: white;
@@ -111,12 +98,6 @@ def apply_theme():
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(74, 0, 224, 0.4);
             }}
-            .stButton > button:hover {{
-                transform: scale(1.02);
-                box-shadow: 0 6px 20px rgba(74, 0, 224, 0.6);
-            }}
-
-            /* Expanders Dark */
             div[data-testid="stExpander"] {{
                 background-color: rgba(255, 255, 255, 0.05);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -128,28 +109,21 @@ def apply_theme():
         st.markdown(f"""
             {base_css}
             <style>
-            /* Light Mode Gradient */
             .stApp {{
                 background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
                 color: #2c3e50;
             }}
-            
-            /* Sidebar Light */
             section[data-testid="stSidebar"] {{
-                background-color: rgba(255, 255, 255, 0.8);
+                background-color: rgba(255, 255, 255, 0.85);
                 backdrop-filter: blur(10px);
                 box-shadow: 5px 0 15px rgba(0,0,0,0.05);
             }}
-
-            /* Inputs Light */
             .stTextInput > div > div > input {{
                 background-color: rgba(255, 255, 255, 0.9);
                 border: 1px solid #a1c4fd;
                 border-radius: 10px;
                 color: #333;
             }}
-            
-            /* Buttons Light - Vibrant Gradients */
             .stButton > button {{
                 background: linear-gradient(90deg, #00c6ff, #0072ff);
                 color: white;
@@ -158,23 +132,11 @@ def apply_theme():
                 font-weight: 600;
                 box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
             }}
-            .stButton > button:hover {{
-                transform: translateY(-3px);
-                box-shadow: 0 8px 25px rgba(0, 114, 255, 0.5);
-            }}
-
-            /* Expanders Light */
             div[data-testid="stExpander"] {{
                 background: white;
                 border-radius: 10px;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.05);
                 border: none;
-            }}
-            
-            /* Result Cards specific for Light Mode */
-            .result-card {{
-                background: white;
-                color: #333;
             }}
             </style>
             """, unsafe_allow_html=True)
@@ -340,7 +302,7 @@ def render_file_view():
     st.info(f"📊 Word Count: {file_data['total_words']}")
     st.text_area("Content Preview", file_data['content'], height=500)
     
-    # Download Button with custom logic
+    # Download Button
     st.download_button(
         label="📥 Download Original File",
         data=file_data['content'],
@@ -352,7 +314,7 @@ def render_file_view():
 def render_search_page():
     st.markdown(f"""
         <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-            <h1 style="margin:0;">🔎 Knowledge Base</h1>
+            <h1 style="margin:0;">🔎 Knowledge Hub</h1>
             <p style="margin:0; opacity: 0.8;">Searching as: <b>{st.session_state['username']}</b></p>
         </div>
     """, unsafe_allow_html=True)
@@ -415,35 +377,43 @@ def render_admin_page():
     
     st.markdown("---")
     
-    # Admin Tabs with Icons
-    t1, t2, t3, t4 = st.tabs(["📤 Uploads", "🗑️ Delete", "📊 Logs", "👥 Logins"])
+    # Merged the File Management Tabs
+    t1, t2, t3 = st.tabs(["📂 Manage Database", "📊 Searchs", "👥 Logins"])
     
+    # TAB 1: ADD & REMOVE FILES (MERGED)
     with t1:
-        st.subheader("Add Documents")
-        uploaded = st.file_uploader("Drop text files here", accept_multiple_files=True)
-        if uploaded:
-            for f in uploaded:
-                with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
-            st.success("Uploaded successfully!")
-            st.cache_resource.clear()
+        col_up, col_list = st.columns([1, 1])
+        
+        with col_up:
+            st.markdown("### Upload New")
+            uploaded = st.file_uploader("Drop text files here", accept_multiple_files=True)
+            if uploaded:
+                for f in uploaded:
+                    with open(os.path.join(DOCS_DIR, f.name), "wb") as w: w.write(f.getbuffer())
+                st.success("Uploaded successfully!")
+                st.cache_resource.clear()
+                st.rerun()
+
+        with col_list:
+            st.markdown("### Existing Files")
+            files = os.listdir(DOCS_DIR)
+            if not files:
+                st.info("Database is empty.")
+            else:
+                for f in files:
+                    c1, c2 = st.columns([0.8, 0.4])
+                    c1.text(f)
+                    if c2.button("Remove", key=f"del_{f}"):
+                        os.remove(os.path.join(DOCS_DIR, f))
+                        st.cache_resource.clear()
+                        st.rerun()
 
     with t2:
-        st.subheader("Manage Database")
-        if st.checkbox("Unlock Deletion Mode"):
-            for f in os.listdir(DOCS_DIR):
-                c1, c2 = st.columns([0.9, 0.1])
-                c1.markdown(f"**{f}**")
-                if c2.button("❌", key=f"del_{f}"):
-                    os.remove(os.path.join(DOCS_DIR, f))
-                    st.cache_resource.clear()
-                    st.rerun()
-
-    with t3:
         st.subheader("Search Queries")
         if os.path.exists(LOG_FILE):
             st.dataframe(pd.read_csv(LOG_FILE), use_container_width=True)
 
-    with t4:
+    with t3:
         st.subheader("Login Activity")
         if os.path.exists(LOGIN_ACTIVITY_FILE):
             st.dataframe(pd.read_csv(LOGIN_ACTIVITY_FILE), use_container_width=True)
@@ -512,7 +482,7 @@ else:
                     st.rerun()
 
         st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
