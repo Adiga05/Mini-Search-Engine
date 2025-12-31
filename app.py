@@ -51,103 +51,110 @@ def apply_theme():
         
         /* --- 0. POP-UP ANIMATION KEYFRAMES --- */
         @keyframes popUp {
-            0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+            0% { transform: translateY(40px) scale(0.95); opacity: 0; }
             100% { transform: translateY(0) scale(1); opacity: 1; }
         }
-        
-        /* --- 1. FLOATING ISLAND (LOGIN HEADER) - WIDER --- */
-        .floating-island-form {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(25px);
-            border-radius: 20px;
-            padding: 20px; 
-            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255,255,255,0.8);
-            margin: 20px auto;
-            text-align: center;
-            max-width: 450px; /* Increased Width */
-            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
 
-        /* --- 2. LOGIN FORM BODY - WIDER & POP UP --- */
+        /* --- 1. MAIN LOGIN CARD (THE FORM ITSELF) --- */
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            max-width: 450px; /* Increased Width to match header */
-            margin: 0 auto;
-            animation: popUp 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border-radius: 25px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            max-width: 450px; 
+            margin: 20px auto; 
+            text-align: center;
+            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
-        /* --- 3. FLOATING INPUTS (Search Bar & Admin Key) --- */
+        /* --- 2. REFINED INPUT FIELDS (FLOATING PILLS) --- */
         div[data-testid="stTextInput"] {
-            background: white;
-            border-radius: 15px;
+            background: #ffffff; /* Pure white */
+            border-radius: 50px; /* Pill shape */
             display: flex; 
             align-items: center; 
-            height: 55px; 
-            padding: 0px 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
+            height: 50px; 
+            padding: 0px 20px;
+            margin-bottom: 15px; /* Spacing between inputs */
+            
+            /* The "Floating" Look */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            border: 1px solid rgba(0,0,0,0.02);
             transition: all 0.3s ease;
         }
-        div[data-testid="stTextInput"]:hover {
+        
+        div[data-testid="stTextInput"]:hover, div[data-testid="stTextInput"]:focus-within {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,114,255,0.3); /* Subtle blue glow */
         }
+        
         div[data-testid="stTextInput"] > div { width: 100%; display: flex; align-items: center; }
         div[data-testid="stTextInput"] > div > div > input {
-            border: none; background: transparent; font-size: 1.1rem; color: #333; margin: 0; padding: 0; line-height: normal;
+            border: none; background: transparent; font-size: 1rem; color: #333; margin: 0; padding: 0;
         }
 
-        /* SPECIFIC: Search Bar Width - NARROWER */
+        /* SPECIFIC: Search Bar Width (NARROWER) */
         .main div[data-testid="stTextInput"] {
-            width: 50%; /* Reduced from 70% to 50% */
-            max-width: 600px;
-            margin: 0 auto 25px auto;
+            width: 40%; /* Reduced to 40% */
+            min-width: 400px;
+            margin: 0 auto 30px auto;
         }
 
-        /* SPECIFIC: Sidebar Inputs Width */
+        /* SPECIFIC: Sidebar Inputs (Admin Key) */
         section[data-testid="stSidebar"] div[data-testid="stTextInput"] {
             width: 100% !important; 
+            min-width: 0;
             margin-bottom: 10px;
         }
 
-        /* --- 4. ANIMATED BUTTONS --- */
+        /* --- 3. ANIMATED BUTTONS --- */
         div.stButton > button {
             transition: all 0.3s ease;
             border-radius: 12px;
             font-weight: 600;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.5rem;
+            width: 100%; /* Full width buttons in form */
+            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,114,255,0.3);
         }
         div.stButton > button:hover {
             transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
-            z-index: 99;
+            box-shadow: 0 8px 25px rgba(0,114,255,0.5);
         }
         
-        /* --- 5. GLASS CARDS --- */
+        /* --- 4. GLASS CARDS (Results) --- */
         .glass-card {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(12px);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             padding: 24px;
             margin-bottom: 20px;
             animation: popUp 0.5s ease-out forwards;
         }
 
-        /* --- 6. SETTINGS DROPDOWNS --- */
-        div[data-testid="stExpander"] {
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 10px;
-            border: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 10px;
+        /* --- 5. TABS --- */
+        .stTabs [data-baseweb="tab-list"] {
+            justify-content: center;
+            gap: 20px;
+            background: transparent;
+        }
+        .stTabs [data-baseweb="tab"] {
+            background-color: transparent;
+            border-radius: 20px;
+            padding: 5px 20px;
+            color: #555;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: rgba(255,255,255,0.8);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            color: #0072ff;
+            font-weight: bold;
         }
         
         .profile-img {
@@ -167,14 +174,14 @@ def apply_theme():
             <style>
             .stApp { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); color: #ffffff; }
             section[data-testid="stSidebar"] { background-color: rgba(30, 30, 50, 0.85); border-right: 1px solid rgba(255,255,255,0.1); }
-            div.stButton > button { background: linear-gradient(90deg, #da22ff, #9733ee); color: white; }
             h1, h2, h3, p { color: white !important; }
             
             /* Dark Mode Overrides */
-            div[data-testid="stTextInput"] { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); }
-            div[data-testid="stTextInput"] > div > div > input { color: white; }
-            .floating-island-form { background: rgba(30, 30, 50, 0.85); border: 1px solid rgba(255,255,255,0.1); }
             [data-testid="stForm"] { background: rgba(30, 30, 50, 0.85); border: 1px solid rgba(255,255,255,0.1); }
+            div[data-testid="stTextInput"] { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+            div[data-testid="stTextInput"] > div > div > input { color: white; }
+            div[data-testid="stTextInput"]:hover { border: 1px solid rgba(218, 34, 255, 0.5); }
+            div.stButton > button { background: linear-gradient(90deg, #da22ff, #9733ee); }
             </style>
         """, unsafe_allow_html=True)
     else:
@@ -182,7 +189,6 @@ def apply_theme():
             <style>
             .stApp { background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); color: #333; }
             section[data-testid="stSidebar"] { background-color: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); }
-            div.stButton > button { background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%); color: white; }
             h1, h2, h3 { color: #2c3e50 !important; }
             </style>
         """, unsafe_allow_html=True)
@@ -291,42 +297,46 @@ def render_login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("""
-            <div class="floating-island-form">
-                <h1 style="color: #0072ff; font-weight: 800; margin-bottom: 5px;">🚀 Mini Engine</h1>
-                <p style="color: #555; font-size: 1.0em;">Secure Document Intelligence</p>
-                <hr style="opacity: 0.2; margin: 10px 0;">
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Tabs for Login/Register
+        # Tabs control switching between Login Form and Register Form
         tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
         
         with tab1:
+            # Styled as a single card via [data-testid="stForm"] CSS
             with st.form("login_form"):
-                user = st.text_input("Username")
-                password = st.text_input("Password", type="password")
+                st.markdown("<h2 style='text-align: center; margin: 0 0 20px 0;'>🚀 Mini Engine</h2>", unsafe_allow_html=True)
+                st.markdown("<p style='text-align: center; opacity: 0.6; margin-bottom: 20px;'>Secure Login</p>", unsafe_allow_html=True)
                 
-                if st.form_submit_button("Log In", use_container_width=True):
+                user = st.text_input("Username", placeholder="Enter Username")
+                password = st.text_input("Password", type="password", placeholder="Enter Password")
+                
+                # Spacer
+                st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
+                
+                if st.form_submit_button("Access System"):
                     if authenticate_user(user, password):
                         st.session_state['logged_in'] = True
                         st.session_state['username'] = user
                         st.rerun()
                     else:
-                        st.error("Invalid Username or Password")
+                        st.error("Invalid Credentials")
         
         with tab2:
             with st.form("register_form"):
-                new_user = st.text_input("Choose Username")
-                new_pass = st.text_input("Create Password", type="password")
+                st.markdown("<h2 style='text-align: center; margin: 0 0 20px 0;'>📝 Join Us</h2>", unsafe_allow_html=True)
+                st.markdown("<p style='text-align: center; opacity: 0.6; margin-bottom: 20px;'>Create Account</p>", unsafe_allow_html=True)
+
+                new_user = st.text_input("New Username", placeholder="Choose Username")
+                new_pass = st.text_input("New Password", type="password", placeholder="Choose Password")
                 
-                if st.form_submit_button("Sign Up", use_container_width=True):
+                st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
+                
+                if st.form_submit_button("Sign Up"):
                     if new_user and new_pass:
                         success, msg = register_user(new_user, new_pass)
                         if success: st.success(msg)
                         else: st.error(msg)
                     else:
-                        st.warning("All fields are required.")
+                        st.warning("Fields cannot be empty")
 
 def render_file_view():
     file_data = st.session_state['selected_file']
@@ -357,7 +367,7 @@ def render_search_page():
     
     engine = load_engine()
     
-    # FLOATING ISLAND SEARCH BAR
+    # FLOATING ISLAND SEARCH BAR (Narrower width applied in CSS)
     query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
     
     if query:
