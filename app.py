@@ -230,6 +230,9 @@ def authenticate_user(username, password):
     
     if not user_row.empty:
         with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{ts},{username},Success\n")
+        
+        # --- FIX: SAVE LOGIN TO URL ---
+        st.query_params["user"] = username
         return True
     else:
         with open(LOGIN_ACTIVITY_FILE, "a") as f: f.write(f"{ts},{username},Failed\n")
@@ -301,58 +304,45 @@ def render_login_page():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         tab1, tab2 = st.tabs(["🔑 Login", "📝 Create Account"])
-        
         with tab1:
             with st.form("login_form"):
                 st.markdown("<h2 style='text-align: center; margin: 0 0 20px 0;'>🚀 Mini Engine</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center; opacity: 0.6; margin-bottom: 20px;'>Secure Login</p>", unsafe_allow_html=True)
-                
                 user = st.text_input("", placeholder="Enter Username")
                 password = st.text_input("", type="password", placeholder="Enter Password")
-                
                 st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
-                
-                if st.form_submit_button("Access System"):
+                if st.form_submit_button("Login"):
                     if authenticate_user(user, password):
                         st.session_state['logged_in'] = True
                         st.session_state['username'] = user
                         st.rerun()
-                    else:
-                        st.error("Invalid Credentials")
-        
+                    else: st.error("Invalid Credentials")
         with tab2:
             with st.form("register_form"):
                 st.markdown("<h2 style='text-align: center; margin: 0 0 20px 0;'>📝 Join Us</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center; opacity: 0.6; margin-bottom: 20px;'>Create Account</p>", unsafe_allow_html=True)
-
                 new_user = st.text_input("New Username", placeholder="Choose Username")
                 new_pass = st.text_input("New Password", type="password", placeholder="Choose Password")
-                
                 st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
-                
                 if st.form_submit_button("Sign Up"):
                     if new_user and new_pass:
                         success, msg = register_user(new_user, new_pass)
                         if success: st.success(msg)
                         else: st.error(msg)
-                    else:
-                        st.warning("Fields cannot be empty")
+                    else: st.warning("Fields cannot be empty")
 
 def render_file_view():
     file_data = st.session_state['selected_file']
-    
     if st.button("⬅️ Back to Search"):
         st.session_state['selected_file'] = None
         st.session_state['current_page'] = "search"
         st.rerun()
-    
     st.markdown(f"""
         <div class="glass-card">
             <h2 style="margin:0; color:#333;">📄 {file_data['filename']}</h2>
             <p style="margin:0; opacity:0.7;">Word Count: {file_data['total_words']}</p>
         </div>
     """, unsafe_allow_html=True)
-    
     st.text_area("File Content", file_data['content'], height=550)
     st.download_button("📥 Download File", file_data['content'], file_data['filename'])
 
@@ -365,40 +355,34 @@ def render_search_page():
     """, unsafe_allow_html=True)
     
     engine = load_engine()
-    
     query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
     
     if query:
         log_search(st.session_state['username'], query)
         results = engine.search(query)
         
-        st.markdown(f"### Found {len(results)} matches")
+        # --- FILTER: HIDE SCORES <= 0 ---
+        results = [r for r in results if r['score'] > 0]
         
-        if not results:
-            st.warning("No documents found matching your query.")
+        st.markdown(f"### Found {len(results)} matches")
+        if not results: st.warning("No documents found matching your query.")
         else:
             for res in results:
-                # --- CHANGE 1: Search Result is now a direct Button ---
-                # No separate "Open" button. No HTML Card. Just a clickable element.
-                # use_container_width=True makes it look like a list item/bar.
-                label = f"📄 {res['filename']}  (Score: {res['score']:.2f})"
+                # --- CHANGE 1: CLICKABLE BUTTON CARD ---
+                button_label = f"📄 {res['filename']}  (Score: {res['score']:.2f})"
                 
-                if st.button(label, key=f"res_{res['filename']}", use_container_width=True):
+                if st.button(button_label, key=f"res_{res['filename']}", use_container_width=True):
                     st.session_state['selected_file'] = res
                     st.session_state['current_page'] = "file_view"
                     st.rerun()
 
 def render_admin_page():
     st.markdown("<h1>🛡️ Admin Dashboard</h1>", unsafe_allow_html=True)
-    
     if st.button("⬅️ Exit Admin"):
         st.session_state['current_page'] = "search"
         st.rerun()
-    
     st.markdown("---")
-    
     t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
-    
     with t1:
         st.markdown("### Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
@@ -408,35 +392,26 @@ def render_admin_page():
             st.success("Files Uploaded Successfully!")
             st.cache_resource.clear()
             st.rerun()
-            
         st.divider()
-        
         st.markdown("### Existing Files")
         files = os.listdir(DOCS_DIR)
-        
-        if not files:
-            st.info("Database is empty.")
+        if not files: st.info("Database is empty.")
         else:
             for f in files:
                 with st.container():
                     col_a, col_b = st.columns([0.85, 0.15])
-                    with col_a:
-                        st.text(f"📄 {f}")
+                    with col_a: st.text(f"📄 {f}")
                     with col_b:
                         if st.button("Remove", key=f"del_{f}"):
                             os.remove(os.path.join(DOCS_DIR, f))
                             st.cache_resource.clear()
                             st.rerun()
                     st.markdown("<hr style='margin:5px 0; opacity:0.1'>", unsafe_allow_html=True)
-
     with t2:
-        if os.path.exists(LOG_FILE):
-            st.dataframe(pd.read_csv(LOG_FILE), use_container_width=True)
+        if os.path.exists(LOG_FILE): st.dataframe(pd.read_csv(LOG_FILE), use_container_width=True)
         else: st.info("No search logs available.")
-
     with t3:
-        if os.path.exists(LOGIN_ACTIVITY_FILE):
-            st.dataframe(pd.read_csv(LOGIN_ACTIVITY_FILE), use_container_width=True)
+        if os.path.exists(LOGIN_ACTIVITY_FILE): st.dataframe(pd.read_csv(LOGIN_ACTIVITY_FILE), use_container_width=True)
         else: st.info("No login logs available.")
 
 # ==========================================
@@ -456,33 +431,26 @@ else:
                 <h3 style="margin: 10px 0 0 0;">{st.session_state['username']}</h3>
             </div>
         """, unsafe_allow_html=True)
-        
         st.markdown("---")
         st.markdown("### ⚙️ Settings Portal")
-
-        # 1. THEME
         with st.expander("🎨 Theme"):
             current_theme = st.session_state['theme']
-            new_theme = st.radio("Select Mode:", ["Light", "Dark"], 
-                                 index=0 if current_theme == "Light" else 1)
+            new_theme = st.radio("Select Mode:", ["Light", "Dark"], index=0 if current_theme == "Light" else 1)
             if new_theme != current_theme:
                 st.session_state['theme'] = new_theme
                 st.rerun()
-
-        # 2. HISTORY (CHANGE 2: Hiding Timestamp)
+                
+        # --- CHANGE 2: HIDDEN TIMESTAMP IN HISTORY ---
         with st.expander("🕒 Search History"):
             if os.path.exists(LOG_FILE):
                 df = pd.read_csv(LOG_FILE)
                 my_logs = df[df['User'] == st.session_state['username']]
                 if not my_logs.empty:
-                    # ONLY showing 'Query' column
+                    # Only showing Query column
                     st.dataframe(my_logs[['Query']], hide_index=True)
-                else:
-                    st.info("No history")
-            else:
-                st.info("No history")
-
-        # 3. ADMIN
+                else: st.info("No history")
+            else: st.info("No history")
+            
         with st.expander("🛡️ Admin Page"):
             if not st.session_state['admin_unlocked']:
                 pwd = st.text_input("Enter Key", type="password")
@@ -491,8 +459,7 @@ else:
                         st.session_state['admin_unlocked'] = True
                         st.session_state['current_page'] = "admin"
                         st.rerun()
-                    else:
-                        st.error("Invalid Key")
+                    else: st.error("Invalid Key")
             else:
                 st.success("Unlocked")
                 if st.button("Go to Dashboard"):
@@ -502,21 +469,18 @@ else:
                     st.session_state['admin_unlocked'] = False
                     st.session_state['current_page'] = "search"
                     st.rerun()
-
         st.markdown("---")
         if st.button("Logout", use_container_width=True):
+            st.query_params.clear() # CLEAR URL ON LOGOUT
             st.session_state['logged_in'] = False
             st.session_state['admin_unlocked'] = False
             st.session_state['current_page'] = "search"
             st.rerun()
 
-    if st.session_state['current_page'] == "search":
-        render_search_page()
-    elif st.session_state['current_page'] == "file_view":
-        render_file_view()
+    if st.session_state['current_page'] == "search": render_search_page()
+    elif st.session_state['current_page'] == "file_view": render_file_view()
     elif st.session_state['current_page'] == "admin":
-        if st.session_state['admin_unlocked']:
-            render_admin_page()
+        if st.session_state['admin_unlocked']: render_admin_page()
         else:
             st.session_state['current_page'] = "search"
             st.rerun()
