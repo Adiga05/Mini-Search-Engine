@@ -355,7 +355,7 @@ def render_search_page():
     """, unsafe_allow_html=True)
     
     engine = load_engine()
-    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
+    query = st.text_input("", placeholder="Search anything (e.g. 'science', 'sports')...")
     
     if query:
         log_search(st.session_state['username'], query)
@@ -382,7 +382,7 @@ def render_admin_page():
         st.session_state['current_page'] = "search"
         st.rerun()
     st.markdown("---")
-    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
+    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Logins"])
     with t1:
         st.markdown("### Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
