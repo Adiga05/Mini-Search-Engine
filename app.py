@@ -355,7 +355,7 @@ def render_search_page():
     """, unsafe_allow_html=True)
     
     engine = load_engine()
-    query = st.text_input("", placeholder="Search anything (e.g. 'finance', 'report')...")
+    query = st.text_input("", placeholder="Search anything (e.g. 'science', 'sports')...")
     
     if query:
         log_search(st.session_state['username'], query)
