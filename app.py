@@ -382,7 +382,7 @@ def render_admin_page():
         st.session_state['current_page'] = "search"
         st.rerun()
     st.markdown("---")
-    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Login Logs"])
+    t1, t2, t3 = st.tabs(["📂 Database Manager", "📊 User Searches", "👥 Logins"])
     with t1:
         st.markdown("### Upload New Documents")
         uploaded = st.file_uploader("Drag text files here", accept_multiple_files=True)
